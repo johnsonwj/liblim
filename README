@@ -1,0 +1,26 @@
+NAMING CONVENTIONS FOR HISTOGRAMS
+
+Histograms produced by the doHists program are stored in hists/ and named
+according to the following conventions.
+
+If the histograms correpsond to Higgs events, the first section of
+the filename is "proc_" where proc is the Higgs production mode
+(ggF, VBF, WH, ZH). The second part represents the decay: htt is H->tautau,
+htm is H->taumu, and so forth.
+
+Non-Higgs events are just named according to the process that the histograms
+correspond to.
+
+All events have as the last term in the name "_CTX", which stands for
+"cut tolerance X". Cuts are done in terms of the number of cuts left
+INCLUDING and AFTER the first failure; at the time of this writing, there
+are 10 cuts total, so a cut result of 4 means that the seventh cut failed
+(so there were 4 cuts left over, including the one that failed).
+
+CT0: except for the cutflow histogram itself, the histograms only contain
+events which passed all cuts.
+
+CT4: Presently LFV-specific events account for the final four cuts in the
+cut flow. CT4 therefore means that the histograms contain all of the cuts
+except for the LFV-specific ones: they still require a tagged tau_had,
+charge correlation, and basic requirements on eta and tau pt.
