@@ -76,7 +76,7 @@ class DatasetIter {
 DatasetIter::DatasetIter() {
     strcpy(bkg_filebase,"/phys/groups/tev/scratch3/users/dataset/lhCNv01-04/");
     strcpy(lfv_filebase,"/phys/groups/tev/scratch3/users/wjohnson/datasets/");
-    strcpy(dslist_file,"datasets");
+    strcpy(dslist_file,"data/datasets");
     currentInputIndex = 0;
     currentOutputIndex = -1;
 
