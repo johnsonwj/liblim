@@ -45,12 +45,15 @@ using namespace std;
 int nfiles;
 vector<TFile*> files;
 
-const int nhists = 15;
+const int nhists = 18;
 const string histNames[nhists] = {
     "h_vismass",
     "h_collimOld",
     "h_collimNew",
+    "x_tau",
+    "x_lep",
     "cutflow",
+    "yield",
     "h_pT",
     "h_eta",
     "lep_pt",
@@ -66,7 +69,8 @@ const string histNames[nhists] = {
 /*
  * Name of each cut done, for labeling bins in the cutflow histogram
  */
-const string cut_names[11] = {
+const int ncuts = 12;
+const string cut_names[ncuts] = {
     "all",
     "iso lep",
     "#tau_{had}",
@@ -76,12 +80,18 @@ const string cut_names[11] = {
     "tau #eta",
     "lep pt",
     "#Delta#phi(MET,#tau)",
+    "colMassOld",
     "#Delta R(MET,#tau)",
     "vis M_{H}"
 };
 
+const bool draw_low_stats = false;
+
 float getExpectedYield(string fname) {
-    return integrated_luminosity*xsecs[fname];
+    // fname currently looks like X_CTN
+    // want to just get X
+    string nname = fname.substr(0, fname.size()-4);
+    return integrated_luminosity*xsecs[nname];
 }
 
 string getBaseName(string big_filename) {
@@ -105,12 +115,15 @@ vector<float> getCutEfficiencies() {
 }
 
 void draw(string name, string filename_suffix) {
-    TH1F* first_hist = 0;
-    bool first_drawn = false;
+    bool is_yield_hist = (name.find("yield") != string::npos);
 
-    TLegend* leg = new TLegend(0.6, 0.7, 0.9, 0.95);
+    TH1F* first_hist = 0;
+    int ndrawn = 0;
+
+    TLegend* leg = new TLegend(0.75, 0.8, 0.95, 0.95);
 
     TCanvas canv(name.data(), name.data());
+    if (is_yield_hist) canv.SetLogy();
 
     vector<float> effs = getCutEfficiencies();
 
@@ -122,8 +135,14 @@ void draw(string name, string filename_suffix) {
 
         if ( file_base.find(filename_suffix) == string::npos ) continue;
 
-        TH1F* this_hist = (TH1F*) files[i] -> Get(name.data());
+        TH1F* this_hist = 0;
+        if ( !is_yield_hist )
+            this_hist = (TH1F*) files[i] -> Get(name.data());
+        else
+            this_hist = (TH1F*) files[i] -> Get("cutflow");
+
         if ( !first_hist) first_hist = this_hist;
+
 
         /*
          * I treat the cutflow histogram and the kinematic ones differently.
@@ -137,23 +156,48 @@ void draw(string name, string filename_suffix) {
             this_hist -> Scale( 1. / this_hist->GetBinContent(1) );
             this_hist -> SetMinimum(0.);
 
-            for (int j = 1; j <= 9; j++)
+            if (is_yield_hist) {
+                float y = getExpectedYield(file_base);
+                this_hist -> SetMaximum(y);
+                this_hist->Scale(y);
+            }
+
+            for (int j = 1; j <= ncuts; j++)
                 this_hist -> GetXaxis() -> SetBinLabel(j, cut_names[j-1].data());
+
         } else {
             float hint = this_hist -> Integral();
 
-            // first scale to expected yield
-            this_hist -> Scale( getExpectedYield(file_base) / hint / 10000);
+            if (filename_suffix.at(2) == '0') {
+                while (this_hist->GetNbinsX() > 25)
+                    this_hist->Rebin();
 
-            // now scale to non kinem cuts
-            this_hist -> Scale( effs.at(i) );
-            this_hist -> Sumw2();
+                // first scale to expected yield
+                if (hint>0)
+                    this_hist -> Scale( getExpectedYield(file_base) / hint / 10000);
+
+                // now scale to non kinem cuts
+                this_hist -> Scale( effs.at(i) );
+                this_hist -> Sumw2();
+            } else {
+                if (!draw_low_stats && hint < 200 && filename_suffix.at(2) != '0') continue;
+
+                if (hint > 0)
+                    this_hist->Scale(1./hint);
+                else
+                { cout << hint << endl; this_hist->Scale(0); }
+            }
             
             //this_hist -> Scale( 1./hint );
+            
+//            TCanvas secret_canvas("secret","secret");
+//            secret_canvas.cd();
+//            this_hist->Draw();
+//            secret_canvas.Print((file_base + "-" + name + ".png").data());
         }
 
-        this_hist -> SetLineColor(i+1);
-        this_hist -> SetMarkerColor(i+1);
+        this_hist -> SetLineColor(ndrawn+1);
+        this_hist -> SetMarkerColor(ndrawn+1);
         this_hist -> SetMarkerStyle(20);
 
 
@@ -164,14 +208,13 @@ void draw(string name, string filename_suffix) {
           first_hist -> SetMaximum( this_hist -> GetMaximum() * 1.1 );
         
         canv.cd();
-        if (!first_drawn) {
+        if (ndrawn == 0) {
             this_hist -> Draw("h");
-            first_drawn = true; 
         } else
             this_hist -> Draw("hsame");
 
         leg -> AddEntry( this_hist, file_base.data(), "pl" );
-
+        ndrawn++;
     }
 
     leg -> Draw();
@@ -221,21 +264,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    //cout << "xsecs" << endl;
-    //cout << "gg htm " << xsecs["gg_htm"] << endl;
-    //cout << "gg htt" << xsecs["gg_htt"] << endl;
-    //cout << "z+jets " << xsecs["z+jets"] << endl;
-    //cout << "w+jets " << xsecs["w+jets"] << endl;
-    //cout << "top+lep " << xsecs["top+lep"] << endl;
-    //cout << "diboson " << xsecs["diboson"] << endl;
-
     SetAtlasStyle();
 
     loadFiles(argv[1]);
 
     for (int i = 0; i < nhists; i++) {
         draw( histNames[i], "CT0" );
-        draw( histNames[i], "CT4" );
+        draw( histNames[i], "CT5" );
     }
 
     return 0;

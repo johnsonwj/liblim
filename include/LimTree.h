@@ -30,12 +30,14 @@
 #include <TFile.h>
 #include <TLorentzVector.h>
 #include <TString.h>
+#include <TObjArray.h>
+#include <TChain.h>
 
 using namespace std;
 
 class LimTree {
     public:
-        LimTree(TTree*);
+        LimTree(TChain*);
         virtual ~LimTree();
 
         // MC stuff
@@ -76,6 +78,9 @@ class LimTree {
 
         float visHiggsMass(); // returns the *visible* Higgs mass
 
+        float metTauFrac();
+        float metLepFrac();
+
         // returns the Higgs mass reconstructed with the collinear approx.
         float collinearMassOld();
 
@@ -94,7 +99,7 @@ class LimTree {
         TLorentzVector pJetSubleading;
 
     private:
-        TTree* tree;
+        TChain* tree;
 
         bool mutau; // true = H -> mu tau; false = H -> e tau
         bool useDijetCuts;
@@ -193,7 +198,7 @@ const float LimTree::muMass = 0.1056583715;
 const float LimTree::tauMass = 1.77682;
 const float LimTree::GeV = 1000.;
 
-LimTree::LimTree(TTree* chain) {
+LimTree::LimTree(TChain* chain) {
     tree = chain;
 
     mutau = true;
@@ -273,7 +278,10 @@ LimTree::LimTree(TTree* chain) {
 
 LimTree::~LimTree() {
     if (!tree) return;
-    delete tree -> GetCurrentFile();
+    TObjArray* file_list = tree->GetListOfFiles();
+    for ( int i = 0; i < file_list->GetEntriesFast(); i++ ) {
+        delete (TFile*) file_list->At(i);
+    }
 };
 
 void LimTree::setMuTau() { mutau = true; }

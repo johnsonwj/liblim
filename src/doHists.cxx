@@ -35,14 +35,17 @@ LimTree* limtree;
 
 std::unordered_map<string,TH1F> hists;
 
-const int NCUTS = 11;
+const int NCUTS = 12;
 
 void bookHists() {
     hists["hVisMass"] = TH1F("h_vismass", "Higgs Visible Mass;Mass (GeV);Counts/5GeV", 75, 0, 150);
     hists["hCollimMassOld"] = TH1F("h_collimOld", "Higgs Collinear Mass (old method);Mass (GeV);Counts/5GeV", 75, 0, 150);
     hists["hCollimMassNew"] = TH1F("h_collimNew", "Higgs Collinear Mass (new method);Mass (GeV);Counts/5GeV", 75, 0, 150);
 
-    hists["cutflow"] = TH1F("cutflow", "Cut Flow;Cuts Passed;Count", NCUTS + 1, 0, NCUTS + 1);
+    hists["x_tau"] = TH1F("x_tau", "MET tau fraction", 100, 0, 1);
+    hists["x_lep"] = TH1F("x_lep", "MET lep fraction", 100, 0, 1);
+
+    hists["cutflow"] = TH1F("cutflow", "Cut Flow;Cuts Passed;Count", NCUTS, 0, NCUTS);
 
     hists["hPt"] = TH1F("h_pT", "Higgs p_{T};p_{T} (GeV);Counts/5GeV", 100, 0, 200);
     hists["hEta"] = TH1F("h_eta", "Higgs #eta;#eta;Counts/0.2", 100, -4, 4);
@@ -65,7 +68,7 @@ int success = 0;
 
 void fillHists(int cut_tolerance) {
     int cfResult = limtree->cutflow();
-    for (float i = 0.5; i < (NCUTS - cfResult + 1); i++) {
+    for (float i = 0.5; i < (NCUTS - cfResult); i++) {
       hists["cutflow"].Fill(i);
     }
 
@@ -79,6 +82,10 @@ void fillHists(int cut_tolerance) {
     hists["hVisMass"].Fill(limtree->visHiggsMass(), weight);
     hists["hCollimMassOld"].Fill(limtree->collinearMassOld(), weight);
     hists["hCollimMassNew"].Fill(limtree->collinearMassNew(), weight);
+
+    float x_tau = limtree->metTauFrac(); float x_lep = limtree->metLepFrac();
+    if (x_tau>0) hists["x_tau"].Fill(x_tau, weight);
+    if (x_lep>0) hists["x_lep"].Fill(x_lep, weight);
 
     //cout << "collim_new " << limtree->collinearMassNew() << endl;
 
@@ -142,7 +149,7 @@ int main() {
     DatasetIter di;
     while (di.nextOutput()) {
         doHists(di, 0); // all cuts
-        doHists(di, 4); // no LFV specific cuts
+        doHists(di, 5); // no LFV specific cuts
     }
 
     return 0;

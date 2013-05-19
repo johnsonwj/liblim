@@ -63,19 +63,29 @@ float LimTree::visHiggsMass() {
     return (pTau + pLep).M();
 }
 
-float LimTree::collinearMassOld() {
-    float num  = pTau.X()*pLep.Y() - pTau.Y()*pLep.X();
+float LimTree::metTauFrac() {
+    float num= pTau.X()*pLep.Y() - pTau.Y()*pLep.X();
     float denh = num + pMet.X()*pLep.Y() - pMet.Y()*pLep.X();
-    float denl = num - pMet.X()*pLep.Y() + pMet.X()*pLep.Y();
 
-    float xTau = 0; float xLep = 0;
-    if (denh != 0) xTau = num/denh;
-    if (denl != 0) xLep = num/denl;
+    if (denh > 0) return num/denh;
+    return -1;
+}
+
+float LimTree::metLepFrac() {
+    float num= pTau.X()*pLep.Y() - pTau.Y()*pLep.X();
+    float denl = num - pMet.X()*pLep.Y() + pMet.Y()*pLep.X();
+
+    if (denl > 0) return num/denl;
+    return -1;
+}
+
+float LimTree::collinearMassOld() {
+    float xLep = metLepFrac();
+    float xTau = metTauFrac();
 
     if (xTau > 0 && xLep > 0)
         return visHiggsMass() / sqrt( xTau*xLep );
-    else
-        return -1;
+    return -1;
 }
 
 float LimTree::collinearMassNew() {
@@ -117,7 +127,7 @@ int LimTree::getNCuts() {
  *  10) higgs vis mass
  */
 int LimTree::tauLepCutFlow() {
-    int nfail = 10;
+    int nfail = 11;
 
     if (is_isoLep) nfail--;
     else return nfail;
@@ -140,16 +150,19 @@ int LimTree::tauLepCutFlow() {
     if (fabs(tauEta) < 2.3) nfail--;
     else return nfail;
 
-    if ((mutau && lepPt > 45) || (!mutau && lepPt > 45)) nfail--;
+    if ((mutau && lepPt > 35) || (!mutau && lepPt > 35)) nfail--;
     else return nfail;
 
     if (fabs(metPhi - tauPhi) < M_PI/2) nfail--;
     else return nfail;
 
-    if ( pTau.DeltaR(pMet) > 2. ) nfail--;
+    if ( collinearMassOld() > 100 ) nfail--;
     else return nfail;
 
-    if ( (pTau+pLep).M() < 90 ) nfail--;
+    if ( pTau.DeltaR(pMet) < 2.5 ) nfail--;
+    else return nfail;
+
+    if ( (pTau+pLep).M() > 75 ) nfail--;
     else return nfail;
 
     return nfail;

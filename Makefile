@@ -1,12 +1,18 @@
 rootc = g++ -Wall -g -std=c++11 -Iinclude $(shell root-config --cflags --libs)
 
-objs = $(addprefix obj/, AtlasStyle.o DatasetIter.o LimTree.o)
-VPATH = src:include
+obj_files = $(addprefix src/, AtlasStyle.o DatasetIter.o LimTree.o)
+
+VPATH = src
 
 all: doHists draw optimize yields
 
-obj/%.o: %.cxx %.h xsec_data.h
-	$(rootc) -c $< -o $@
+.PHONY: clean objs
 
-%: %.cxx $(objs)
-	$(rootc) $^ -o $@
+%: %.cxx objs
+	$(rootc) $< $(obj_files) -o $@
+
+objs:
+	cd src && $(MAKE)
+
+clean:
+	rm src/*.o
