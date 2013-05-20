@@ -40,12 +40,13 @@ const int NCUTS = 12;
 void bookHists() {
     hists["hVisMass"] = TH1F("h_vismass", "Higgs Visible Mass;Mass (GeV);Counts/5GeV", 75, 0, 150);
     hists["hCollimMassOld"] = TH1F("h_collimOld", "Higgs Collinear Mass (old method);Mass (GeV);Counts/5GeV", 75, 0, 150);
-    hists["hCollimMassNew"] = TH1F("h_collimNew", "Higgs Collinear Mass (new method);Mass (GeV);Counts/5GeV", 75, 0, 150);
+    hists["hCollimMassNew"] = TH1F("h_collimNew", "Higgs Collinear Mass (new method);Mass (GeV);Counts/5GeV", 100, 115, 125);
 
     hists["x_tau"] = TH1F("x_tau", "MET tau fraction", 100, 0, 1);
     hists["x_lep"] = TH1F("x_lep", "MET lep fraction", 100, 0, 1);
 
-    hists["cutflow"] = TH1F("cutflow", "Cut Flow;Cuts Passed;Count", NCUTS, 0, NCUTS);
+    hists["cutflow_full"] = TH1F("cutflow_full", "Cut Flow;Cuts Passed;Count", NCUTS, 0, NCUTS);
+    hists["cutflow_mH115to135"] = TH1F("cutflow_mH115to135", "Cut flow, 115 GeV < m_{H} < 135 GeV;Cuts passed;Count", NCUTS, 0, NCUTS)
 
     hists["hPt"] = TH1F("h_pT", "Higgs p_{T};p_{T} (GeV);Counts/5GeV", 100, 0, 200);
     hists["hEta"] = TH1F("h_eta", "Higgs #eta;#eta;Counts/0.2", 100, -4, 4);
@@ -69,7 +70,10 @@ int success = 0;
 void fillHists(int cut_tolerance) {
     int cfResult = limtree->cutflow();
     for (float i = 0.5; i < (NCUTS - cfResult); i++) {
-      hists["cutflow"].Fill(i);
+        hists["cutflow"].Fill(i);
+
+        if (115 < limtree->collinearMassNew() && limtree->collinearMassNew() < 135)
+            hists["cutflow_mH115to135"].Fill(i);
     }
 
     if (cfResult > cut_tolerance) return;

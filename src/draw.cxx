@@ -37,6 +37,7 @@
 #include <TH1F.h>
 #include <TLegend.h>
 #include <TString.h>
+#include <THStack.h>
 
 #include "xsec_data.h"
 
@@ -45,15 +46,17 @@ using namespace std;
 int nfiles;
 vector<TFile*> files;
 
-const int nhists = 18;
-const string histNames[nhists] = {
+const int nhists_cut_kinem = 19;
+const string hist_cut_kinem[nhists] = {
     "h_vismass",
     "h_collimOld",
     "h_collimNew",
     "x_tau",
     "x_lep",
     "cutflow",
+    "cutflow_mH115to135",
     "yield",
+    "yield_mH115to135",
     "h_pT",
     "h_eta",
     "lep_pt",
@@ -94,13 +97,13 @@ float getExpectedYield(string fname) {
     return integrated_luminosity*xsecs[nname];
 }
 
-string getBaseName(string big_filename) {
+string get_base_name(string big_filename) {
     return big_filename.substr(
             big_filename.find_last_of('/') + 1,
             big_filename.size() - big_filename.find_last_of('/') - 6);
 }
 
-vector<float> getCutEfficiencies() {
+vector<float> get_cut_efficiencies() {
     vector<float> effs;
 
     for (int i = 0; i < nfiles; i++) {
@@ -114,7 +117,40 @@ vector<float> getCutEfficiencies() {
     return effs;
 }
 
-void draw(string name, string filename_suffix) {
+void draw_sig(string filename_suffix) {
+    const char* nname = ("sig_" + filename_suffix).data();
+
+    TLegend* leg = new TLegend(0.75, 0.8, 0.95, 0.95);
+    TCanvas canv( nname, nname );
+
+    vector<float> effs = get_cut_efficiencies();
+
+    THStack stack(nname, "Signal, 115 GeV < m_{H} < 135 GeV;Mass (GeV);Counts");
+
+    TH1F* current_hist = 0;
+    int ndrawn = 0;
+
+    for (int i = 0; i < nfiles; i++) {
+        string file_base = get_base_name( files[i]->GetName() );
+        if (file_base.find(filename_suffix) == string::npos) continue;
+
+        current_hist = (TH1F*) files[i]->Get("h_collimNew");
+        current_hist -> SetLineColor(ndrawn+1);
+        current_hist -> SetFillColor(ndrawn+1);
+        current_hist -> SetMarkerColor(ndrawn+1);
+        current_hist -> SetMarkerStyle(20);
+
+        stack.Add( current_hist );
+        leg -> AddEntry( current_hist, "f" );
+    }
+
+    canv.cd();
+    stack.Draw("H");
+    leg.Draw();
+    canv.Print( ("pix_" + filename_suffix + "/" + string(nname) + ".png").data() );
+}
+
+void draw_cut_kinem(string name, string filename_suffix) {
     bool is_yield_hist = (name.find("yield") != string::npos);
 
     TH1F* first_hist = 0;
@@ -125,13 +161,13 @@ void draw(string name, string filename_suffix) {
     TCanvas canv(name.data(), name.data());
     if (is_yield_hist) canv.SetLogy();
 
-    vector<float> effs = getCutEfficiencies();
+    vector<float> effs = get_cut_efficiencies();
 
     for (int i = 0; i < nfiles; i++) {
         /*
          * "/phys/users/.../filename.root" --> "filename"
          */
-        string file_base = getBaseName( files[i] -> GetName() );
+        string file_base = get_base_name( files[i] -> GetName() );
 
         if ( file_base.find(filename_suffix) == string::npos ) continue;
 
@@ -269,9 +305,12 @@ int main(int argc, char* argv[]) {
     loadFiles(argv[1]);
 
     for (int i = 0; i < nhists; i++) {
-        draw( histNames[i], "CT0" );
-        draw( histNames[i], "CT5" );
+        draw_cut_kinem( hist_cut_kinem[i], "CT0" );
+        draw_cut_kinem( hist_cut_kinem[i], "CT5" );
     }
+
+    draw_sig("CT0");
+    draw_sig("CT5");
 
     return 0;
 }

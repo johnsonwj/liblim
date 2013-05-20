@@ -8,7 +8,7 @@ data_line_head = '# {0:<16}{1:<12}{2:<12}{3:<12}{4:<12}{5:<12}\n'.format(
     'Dataset name', 'Total', 'CT0 Passed', 'CT0 Eff', 'CT4 Passed', 'CT4 Eff')
 
 files = [ 'gg_htm', 'vbf_htm', 'wh_htm', 'zh_htm',
-          'gg_htt', 'vbf_htt', 'wh_htm', 'zh_htm',
+          'gg_htt', 'vbf_htt', 'wh_htt', 'zh_htt',
           'diboson', 'top+lep', 'w+jets', 'z+jets' ]
 
 with open('data/eff','w') as data_out:
@@ -25,7 +25,7 @@ with open('data/eff','w') as data_out:
     begin4 = cfhist4.GetBinContent(1)
 
     end0 = cfhist0.GetBinContent( cfhist0.GetNbinsX() )
-    end4 = cfhist4.GetBinContent( cfhist4.GetNbinsX() - 4 )
+    end4 = cfhist4.GetBinContent( cfhist4.GetNbinsX() - 5 )
 
     if begin0 > 0:
         eff0 = float(end0)/begin0
