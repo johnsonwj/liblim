@@ -1,5 +1,4 @@
 *.swp
-obj/*
 hists/*
 .nfs*
 doHists

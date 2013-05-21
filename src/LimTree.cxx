@@ -127,7 +127,7 @@ int LimTree::getNCuts() {
  *  10) higgs vis mass
  */
 int LimTree::tauLepCutFlow() {
-    int nfail = 11;
+    int nfail = 10;
 
     if (is_isoLep) nfail--;
     else return nfail;
@@ -156,13 +156,13 @@ int LimTree::tauLepCutFlow() {
     if (fabs(metPhi - tauPhi) < M_PI/2) nfail--;
     else return nfail;
 
-    if ( collinearMassOld() > 100 ) nfail--;
-    else return nfail;
+//    if ( collinearMassOld() > 100 ) nfail--;
+//    else return nfail;
 
     if ( pTau.DeltaR(pMet) < 2.5 ) nfail--;
     else return nfail;
 
-    if ( (pTau+pLep).M() > 75 ) nfail--;
+    if ( (pTau+pLep).M() > 90 ) nfail--;
     else return nfail;
 
     return nfail;

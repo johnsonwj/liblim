@@ -38,6 +38,7 @@
 #include <TLegend.h>
 #include <TString.h>
 #include <THStack.h>
+#include <TList.h>
 
 #include "xsec_data.h"
 
@@ -46,17 +47,11 @@ using namespace std;
 int nfiles;
 vector<TFile*> files;
 
-const int nhists_cut_kinem = 19;
-const string hist_cut_kinem[nhists] = {
+const int n_kinemhists = 14;
+const string kinem_hists[n_kinemhists] = {
     "h_vismass",
     "h_collimOld",
     "h_collimNew",
-    "x_tau",
-    "x_lep",
-    "cutflow",
-    "cutflow_mH115to135",
-    "yield",
-    "yield_mH115to135",
     "h_pT",
     "h_eta",
     "lep_pt",
@@ -69,10 +64,18 @@ const string hist_cut_kinem[nhists] = {
     "dr_met_tau",
     "dphi_met_tau" };
 
+const int n_cuthists = 4;
+const string cut_hists[n_cuthists] = {
+    "cutflow_full",
+    "cutflow_mH115to135",
+    "yield_full",
+    "yield_mH115to135"
+};
+
 /*
  * Name of each cut done, for labeling bins in the cutflow histogram
  */
-const int ncuts = 12;
+const int ncuts = 11;
 const string cut_names[ncuts] = {
     "all",
     "iso lep",
@@ -83,15 +86,20 @@ const string cut_names[ncuts] = {
     "tau #eta",
     "lep pt",
     "#Delta#phi(MET,#tau)",
-    "colMassOld",
+//    "colMassOld",
     "#Delta R(MET,#tau)",
     "vis M_{H}"
 };
 
+const int n_modes = 4;
+const string pmodes[n_modes] = {
+    "gg", "vbf", "wh", "zh"
+};
+
 const bool draw_low_stats = false;
 
-float getExpectedYield(string fname) {
-    // fname currently looks like X_CTN
+float get_expected_yield(string fname) {
+    // fname currently looks like X_CTn
     // want to just get X
     string nname = fname.substr(0, fname.size()-4);
     return integrated_luminosity*xsecs[nname];
@@ -103,11 +111,15 @@ string get_base_name(string big_filename) {
             big_filename.size() - big_filename.find_last_of('/') - 6);
 }
 
-vector<float> get_cut_efficiencies() {
+vector<float> get_cut_efficiencies(bool sig_region_only) {
     vector<float> effs;
 
     for (int i = 0; i < nfiles; i++) {
-        TH1F* cf_hist = (TH1F*) files[i] -> Get("cutflow");
+        TH1F* cf_hist = 0;
+        
+        if (sig_region_only) cf_hist = (TH1F*) files[i] -> Get("cutflow_mH115to135");
+        else cf_hist = (TH1F*) files[i] -> Get("cutflow_full");
+
         float begin = cf_hist -> GetBinContent(1);
         float end = cf_hist -> GetBinContent( 4 );
 
@@ -117,171 +129,163 @@ vector<float> get_cut_efficiencies() {
     return effs;
 }
 
-void draw_sig(string filename_suffix) {
-    const char* nname = ("sig_" + filename_suffix).data();
+void draw_sig() {
+    for (int i = 0; i < n_modes; i++) {
+        TLegend leg(0.75, 0.8, 0.95, 0.95);
+        TCanvas canv( "sig", "sig" );
 
-    TLegend* leg = new TLegend(0.75, 0.8, 0.95, 0.95);
-    TCanvas canv( nname, nname );
+        vector<float> effs = get_cut_efficiencies(true);
 
-    vector<float> effs = get_cut_efficiencies();
+        THStack stack("sigstack", "Signal, 115 GeV < m_{H} < 135 GeV;Mass (GeV);Counts");
 
-    THStack stack(nname, "Signal, 115 GeV < m_{H} < 135 GeV;Mass (GeV);Counts");
+        TH1F* current_hist = 0;
+        int ndrawn = 0;
 
-    TH1F* current_hist = 0;
-    int ndrawn = 0;
+        for (int j = 0; j < nfiles; j++) {
+            string file_base = get_base_name( files[j]->GetName() );
+            if (file_base.find("CT0") == string::npos) continue;
+            if ( file_base.find("htt") != string::npos || file_base.find("htm") != string::npos )
+                if ( file_base.find( pmodes[i] ) == string::npos ) continue;
 
-    for (int i = 0; i < nfiles; i++) {
-        string file_base = get_base_name( files[i]->GetName() );
-        if (file_base.find(filename_suffix) == string::npos) continue;
+            current_hist = (TH1F*) files[j]->Get("h_collimNew");
+            current_hist -> SetLineColor(ndrawn+1);
+            current_hist -> SetFillColor(ndrawn+1);
 
-        current_hist = (TH1F*) files[i]->Get("h_collimNew");
-        current_hist -> SetLineColor(ndrawn+1);
-        current_hist -> SetFillColor(ndrawn+1);
-        current_hist -> SetMarkerColor(ndrawn+1);
-        current_hist -> SetMarkerStyle(20);
+            while (current_hist->GetNbinsX() > 30) current_hist->Rebin();
 
-        stack.Add( current_hist );
-        leg -> AddEntry( current_hist, "f" );
+            stack.Add( current_hist );
+            leg.AddEntry( current_hist, file_base.data(), "f" );
+
+            ndrawn++;
+        }
+
+        canv.cd();
+        stack.Draw("H");
+        leg.Draw();
+        canv.Print( ("pix_sig/" + pmodes[i] + ".png").data() );
     }
-
-    canv.cd();
-    stack.Draw("H");
-    leg.Draw();
-    canv.Print( ("pix_" + filename_suffix + "/" + string(nname) + ".png").data() );
 }
 
-void draw_cut_kinem(string name, string filename_suffix) {
-    bool is_yield_hist = (name.find("yield") != string::npos);
-
+void _draw(vector<TH1F*> hists, vector<string> labels, string out_name, bool logy) {
     TH1F* first_hist = 0;
     int ndrawn = 0;
 
-    TLegend* leg = new TLegend(0.75, 0.8, 0.95, 0.95);
+    TCanvas canv;
 
-    TCanvas canv(name.data(), name.data());
-    if (is_yield_hist) canv.SetLogy();
+    TLegend leg(0.75, 0.8, 0.95, 0.95);
 
-    vector<float> effs = get_cut_efficiencies();
-
-    for (int i = 0; i < nfiles; i++) {
-        /*
-         * "/phys/users/.../filename.root" --> "filename"
-         */
-        string file_base = get_base_name( files[i] -> GetName() );
-
-        if ( file_base.find(filename_suffix) == string::npos ) continue;
-
-        TH1F* this_hist = 0;
-        if ( !is_yield_hist )
-            this_hist = (TH1F*) files[i] -> Get(name.data());
-        else
-            this_hist = (TH1F*) files[i] -> Get("cutflow");
-
-        if ( !first_hist) first_hist = this_hist;
-
-
-        /*
-         * I treat the cutflow histogram and the kinematic ones differently.
-         * cutflow gets bin labels and is scaled so that the first bin is at 1,
-         * so the histogram represents the proportion of events left after each cut
-         * regardless of how many events were put in it.
-         *
-         * Kinematic histograms get scaled to expected yield.
-         */
-        if ( TString(this_hist->GetName()).Contains("cutflow") ) {
-            this_hist -> Scale( 1. / this_hist->GetBinContent(1) );
-            this_hist -> SetMinimum(0.);
-
-            if (is_yield_hist) {
-                float y = getExpectedYield(file_base);
-                this_hist -> SetMaximum(y);
-                this_hist->Scale(y);
-            }
-
-            for (int j = 1; j <= ncuts; j++)
-                this_hist -> GetXaxis() -> SetBinLabel(j, cut_names[j-1].data());
-
-        } else {
-            float hint = this_hist -> Integral();
-
-            if (filename_suffix.at(2) == '0') {
-                while (this_hist->GetNbinsX() > 25)
-                    this_hist->Rebin();
-
-                // first scale to expected yield
-                if (hint>0)
-                    this_hist -> Scale( getExpectedYield(file_base) / hint / 10000);
-
-                // now scale to non kinem cuts
-                this_hist -> Scale( effs.at(i) );
-                this_hist -> Sumw2();
-            } else {
-                if (!draw_low_stats && hint < 200 && filename_suffix.at(2) != '0') continue;
-
-                if (hint > 0)
-                    this_hist->Scale(1./hint);
-                else
-                { cout << hint << endl; this_hist->Scale(0); }
-            }
-            
-            //this_hist -> Scale( 1./hint );
-            
-//            TCanvas secret_canvas("secret","secret");
-//            secret_canvas.cd();
-//            this_hist->Draw();
-//            secret_canvas.Print((file_base + "-" + name + ".png").data());
-        }
+    for (unsigned i = 0; i < hists.size(); i++) {
+        TH1F* this_hist = hists.at(i);
+        if (!first_hist) first_hist = this_hist;
 
         this_hist -> SetLineColor(ndrawn+1);
         this_hist -> SetMarkerColor(ndrawn+1);
         this_hist -> SetMarkerStyle(20);
 
+        if (this_hist != first_hist && this_hist->GetMaximum() > first_hist->GetMaximum())
+            first_hist -> SetMaximum( this_hist->GetMaximum() * 1.1 );
 
-        /*
-         * Make sure none of them go off the top of the page
-         */
-        if ( this_hist != first_hist && this_hist->GetMaximum() > first_hist->GetMaximum())
-          first_hist -> SetMaximum( this_hist -> GetMaximum() * 1.1 );
-        
         canv.cd();
-        if (ndrawn == 0) {
-            this_hist -> Draw("h");
-        } else
-            this_hist -> Draw("hsame");
+        if (ndrawn == 0) this_hist -> Draw("h");
+        else this_hist -> Draw("hsame");
 
-        leg -> AddEntry( this_hist, file_base.data(), "pl" );
+        leg.AddEntry(this_hist, labels.at(i).data(), "pl");
+
         ndrawn++;
     }
 
-    leg -> Draw();
+    TList* l = canv.GetListOfPrimitives();
+    for (int k = 0; k < l->GetEntries(); k++)
 
-    canv.Print(("pix_" + filename_suffix + "/" + name + ".png").data());
-    // augh, blank picture!
+    if (logy) { 
+        for (unsigned i = 0; i < hists.size(); i++) hists.at(i) -> SetMinimum(1.);
+        canv.SetLogy();
+    }
+
+    
+
+    leg.Draw();
+    canv.Print(out_name.data());
+
 }
 
-/*
- * Goes through the hists/ directory and opens each file in there, pushing it
- * on to the files vector.
- */
-void loadFiles(string pmode) {
-  DIR *dp;
-  struct dirent *dirp;
+void draw_cuts() {
+    for (int i = 0; i < n_modes; i++) {
+        for (int j = 0; j < n_cuthists; j++) {
+            vector<TH1F*> hists;
+            vector<string> legend_labels;
 
-  nfiles = 0;
+            bool is_yield_hist = (cut_hists[j].find("yield") != string::npos);
 
-  dp = opendir("hists");
-  while ( (dirp = readdir(dp)) ) {
-    if (!TString(dirp->d_name).Contains(".root")) continue;
+            for (int k = 0; k < nfiles; k++) {
+                string file_base = get_base_name( files[k]->GetName() );
+                if ( file_base.find("CT0") == string::npos ) continue;
+                if ( file_base.find("htt") != string::npos || file_base.find("htm") != string::npos )
+                    if ( file_base.find( pmodes[i] ) == string::npos ) continue;
 
-    if ( (TString(dirp->d_name).Contains("htt") || TString(dirp->d_name).Contains("htm")) 
-            && !TString(dirp->d_name).Contains(pmode.data()) ) continue;
+                TH1F* this_hist = (TH1F*) files[k] -> Get( cut_hists[j].data() );
 
-    // if (!TString(dirp->d_name).Contains("noKinemCuts")) continue;
+                if (!is_yield_hist) this_hist -> Scale(1./this_hist->GetBinContent(1));
 
-    files.push_back(new TFile( TString("hists/") + dirp -> d_name ));
-    nfiles++;
-  }
-  closedir(dp);
+                this_hist -> SetMinimum(0.);
+
+                for (int k = 0; k < ncuts; k++)
+                    this_hist -> GetXaxis() -> SetBinLabel(k+1, cut_names[k].data());
+
+                hists.push_back(this_hist);
+                legend_labels.push_back(file_base);
+            }
+
+            _draw(hists, legend_labels, ("pix_cut/" + pmodes[i] + "_" + cut_hists[j] + ".png"), is_yield_hist);
+        }
+    }
+}
+
+void draw_kinem() {
+    for (int i = 0; i < n_modes; i++) {
+        for (int j = 0; j < n_kinemhists; j++) {
+            vector<TH1F*> hists;
+            vector<string> legend_labels;
+
+            vector<float> effs = get_cut_efficiencies(false);
+
+            for (int k = 0; k < nfiles; k++) {
+                string file_base = get_base_name( files[k]->GetName() );
+                if ( file_base.find("CT0") != string::npos ) continue;
+                if ( file_base.find("htt") != string::npos || file_base.find("htm") != string::npos )
+                    if ( file_base.find( pmodes[i] ) == string::npos ) continue;
+
+                TH1F* this_hist = (TH1F*) files[k] -> Get( kinem_hists[j].data() );
+
+                float hint = this_hist->Integral();
+                if (!draw_low_stats && hint < 200) continue;
+
+                if (hint > 0) this_hist -> Scale( 1./hint );
+
+                hists.push_back(this_hist);
+                legend_labels.push_back(file_base);
+            }
+
+            _draw(hists, legend_labels, ("pix_kinem/" + pmodes[i] + "_" + kinem_hists[j] + ".png"), false);
+        }
+    }
+}
+
+void loadFiles() {
+    DIR *dp;
+    struct dirent *dirp;
+
+    nfiles = 0;
+
+    dp = opendir("hists");
+    while ( (dirp = readdir(dp)) ) {
+        if (!TString(dirp->d_name).Contains(".root")) continue;
+
+        files.push_back(new TFile( TString("hists/") + dirp -> d_name ));
+        nfiles++;
+    }
+
+    closedir(dp);
 }
 
 /*
@@ -289,28 +293,14 @@ void loadFiles(string pmode) {
  * then goes through each of the histograms and calls the draw()
  * method for it.
  */
-int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        cout << "name a production mode: gg,vbf,wh,zh" << endl;
-        return 1;
-    }
-
-    if (string("gg vbf wh zh").find(argv[1]) == string::npos) {
-        cout << "invalid production mode" << endl;
-        return 1;
-    }
-
+int main() {
     SetAtlasStyle();
 
-    loadFiles(argv[1]);
+    loadFiles();
 
-    for (int i = 0; i < nhists; i++) {
-        draw_cut_kinem( hist_cut_kinem[i], "CT0" );
-        draw_cut_kinem( hist_cut_kinem[i], "CT5" );
-    }
-
-    draw_sig("CT0");
-    draw_sig("CT5");
+    draw_kinem();
+    draw_cuts();
+    draw_sig();
 
     return 0;
 }

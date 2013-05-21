@@ -9,7 +9,6 @@
 void SetAtlasStyle ()
 {
   static TStyle* atlasStyle = 0;
-  std::cout << "\nApplying ATLAS style settings...\n" << std::endl ;
   if ( atlasStyle==0 ) atlasStyle = AtlasStyle();
   gROOT->SetStyle("ATLAS");
   gROOT->ForceStyle();
