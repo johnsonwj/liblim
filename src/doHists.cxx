@@ -21,7 +21,7 @@
 #include <sstream>
 #include <fstream>
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <vector>
 #include <dirent.h>
 
@@ -35,14 +35,14 @@ using namespace std;
 
 LimTree* limtree;
 
-std::unordered_map<string,TH1F> hists;
+std::map<string,TH1F> hists;
 
 const int NCUTS = 11;
 
 void book_hists() {
     hists["hVisMass"] = TH1F("h_vismass", "Higgs Visible Mass;Mass (GeV);Counts/5GeV", 75, 0, 150);
     hists["hCollimMassOld"] = TH1F("h_collimOld", "Higgs Collinear Mass (old method);Mass (GeV);Counts/5GeV", 75, 0, 150);
-    hists["hCollimMassNew"] = TH1F("h_collimNew", "Higgs Collinear Mass (new method);Mass (GeV);Counts/5GeV", 100, 115, 125);
+    hists["hCollimMassNew"] = TH1F("h_collimNew", "Higgs Collinear Mass (new method);Mass (GeV);Counts/5GeV", 100, 115, 135);
 
     hists["cutflow_full"] = TH1F("cutflow_full", "Cut Flow;Cuts Passed;Count", NCUTS, 0, NCUTS);
     hists["cutflow_mH115to135"] = TH1F("cutflow_mH115to135", "Cut flow, 115 GeV < m_{H} < 135 GeV;Cuts passed;Count", NCUTS, 0, NCUTS);
@@ -121,7 +121,7 @@ void checkEntryNumber(long n) {
 
 void doHists(DatasetIter di, int cut_tolerance) {
     success = 0;
-    long eventsProcessed = 0;
+    long total_mc_events = 0;
     int res = 0;
     cout << "STARTING " << di.getOutputFilename() << endl;
 
@@ -139,14 +139,20 @@ void doHists(DatasetIter di, int cut_tolerance) {
 
         while ( limtree->loadNext() >= 0 ) {
             fillHists(out_filename);
-            eventsProcessed++;
-            checkEntryNumber(eventsProcessed);
+            total_mc_events++;
+            checkEntryNumber(total_mc_events);
         }
+    }
+
+    for (std::map<string,TH1F>::iterator it = hists.begin(); it != hists.end(); ++it) {
+        TString histname((it->second).GetName());
+        if (histname.Contains("cutflow")) continue;
+        (it->second).Scale(1./total_mc_events);
     }
 
     TFile* fout = new TFile(out_filename.data(),"recreate");
     fout->cd();
-    for (std::unordered_map<string,TH1F>::iterator it = hists.begin(); it != hists.end(); ++it) {
+    for (std::map<string,TH1F>::iterator it = hists.begin(); it != hists.end(); ++it) {
         (it -> second).Write();
     }
     fout -> Close();

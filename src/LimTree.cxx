@@ -150,7 +150,7 @@ int LimTree::tauLepCutFlow() {
     if (fabs(tauEta) < 2.3) nfail--;
     else return nfail;
 
-    if ((mutau && lepPt > 35) || (!mutau && lepPt > 35)) nfail--;
+    if ((mutau && lepPt > 50) || (!mutau && lepPt > 50)) nfail--;
     else return nfail;
 
     if (fabs(metPhi - tauPhi) < M_PI/2) nfail--;

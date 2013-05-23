@@ -133,12 +133,17 @@ void draw_sig() {
     for (int i = 0; i < n_modes; i++) {
         TLegend leg(0.75, 0.8, 0.95, 0.95);
         TCanvas canv( "sig", "sig" );
+        canv.SetLogy();
 
         vector<float> effs = get_cut_efficiencies(true);
 
         THStack stack("sigstack", "Signal, 115 GeV < m_{H} < 135 GeV;Mass (GeV);Counts");
 
         TH1F* current_hist = 0;
+
+        TH1F* sig_hist = 0;
+        string sig_hist_file_base;
+
         int ndrawn = 0;
 
         for (int j = 0; j < nfiles; j++) {
@@ -148,16 +153,30 @@ void draw_sig() {
                 if ( file_base.find( pmodes[i] ) == string::npos ) continue;
 
             current_hist = (TH1F*) files[j]->Get("h_collimNew");
-            current_hist -> SetLineColor(ndrawn+1);
-            current_hist -> SetFillColor(ndrawn+1);
 
+            if (current_hist->GetMinimum() < 1.) current_hist->SetMinimum(1.);
             while (current_hist->GetNbinsX() > 30) current_hist->Rebin();
+
+            // save drawing the signal hist last so it is on top of the stack
+            if (file_base.find("htm") != string::npos) {
+                sig_hist = current_hist;
+                sig_hist -> SetLineColor(1);
+                sig_hist -> SetFillColor(1);
+                sig_hist_file_base = file_base;
+                continue;
+            }
+
+            current_hist -> SetLineColor(ndrawn+2);
+            current_hist -> SetFillColor(ndrawn+2);
 
             stack.Add( current_hist );
             leg.AddEntry( current_hist, file_base.data(), "f" );
 
             ndrawn++;
         }
+
+        stack.Add(sig_hist);
+        leg.AddEntry(sig_hist, sig_hist_file_base.data(), "f");
 
         canv.cd();
         stack.Draw("H");
@@ -257,7 +276,7 @@ void draw_kinem() {
 
                 TH1F* this_hist = (TH1F*) files[k] -> Get( kinem_hists[j].data() );
 
-                float hint = this_hist->Integral();
+                float hint = this_hist->Integral() + this_hist->GetBinContent(0) + this_hist->GetBinContent(this_hist->GetNbinsX()+1);
                 if (!draw_low_stats && hint < 200) continue;
 
                 if (hint > 0) this_hist -> Scale( 1./hint );
