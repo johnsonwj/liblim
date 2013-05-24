@@ -157,6 +157,8 @@ void draw_sig() {
             if (current_hist->GetMinimum() < 1.) current_hist->SetMinimum(1.);
             while (current_hist->GetNbinsX() > 30) current_hist->Rebin();
 
+            current_hist -> Scale( effs.at(j) );
+
             // save drawing the signal hist last so it is on top of the stack
             if (file_base.find("htm") != string::npos) {
                 sig_hist = current_hist;
@@ -236,6 +238,9 @@ void draw_cuts() {
 
             bool is_yield_hist = (cut_hists[j].find("yield") != string::npos);
 
+            vector<float> effs_full = get_cut_efficiencies(false);
+            vector<float> effs_sig  = get_cut_efficiencies(true);
+
             for (int k = 0; k < nfiles; k++) {
                 string file_base = get_base_name( files[k]->GetName() );
                 if ( file_base.find("CT0") == string::npos ) continue;
@@ -245,6 +250,8 @@ void draw_cuts() {
                 TH1F* this_hist = (TH1F*) files[k] -> Get( cut_hists[j].data() );
 
                 if (!is_yield_hist) this_hist -> Scale(1./this_hist->GetBinContent(1));
+                else if ( TString(this_hist->GetName()).Contains("115to135") ) this_hist -> Scale(effs_sig.at(k));
+                else this_hist -> Scale(effs_full.at(k));
 
                 this_hist -> SetMinimum(0.);
 
