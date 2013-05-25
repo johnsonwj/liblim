@@ -2,90 +2,90 @@
 # bkg samples in /phys/groups/tev/scratch3/users/dataset/lhCNv01-04/
 # lfv samples in /phys/groups/tev/scratch3/users/wjohnson/datasets/
 
-lfv_gg_htm      gg_htm  169670
-lfv_vbf_htm     vbf_htm 169672
-lfv_wh_htm      wh_htm  169674
-lfv_zh_htm      zh_htm  169676
+htm_gg 169670
+htm_vbf 169672
+htm_wh 169674
+htm_zh 169676
 
-bkg_gg_htt gg_htt 161566
-bkg_vbf_htt vbf_htt 161606
-bkg_wh_htt wh_htt 161646
-bkg_zh_htt zh_htt 161686
-bkg_diboson ww 105985
-bkg_diboson zz 105986
-bkg_diboson wz 105987
-bkg_z+jets zee_np0 107650
-bkg_z+jets zee_np1 107651
-bkg_z+jets zee_np2 107652
-bkg_z+jets zee_np3 107653
-bkg_z+jets zee_np4 107654
-bkg_z+jets zee_np5 107655
-bkg_z+jets zmumu_np0 107660
-bkg_z+jets zmumu_np1 107661
-bkg_z+jets zmumu_np2 107662
-bkg_z+jets zmumu_np3 107663
-bkg_z+jets zmumu_np4 107664
-bkg_z+jets zmumu_np5 107665
-bkg_z+jets ztautau_np0 107670
-bkg_z+jets ztautau_np1 107671
-bkg_z+jets ztautau_np2 107672
-bkg_z+jets ztautau_np3 107673
-bkg_z+jets ztautau_np4 107674
-bkg_z+jets ztautau_np5 107675
-bkg_w+jets wenu_np0 107680
-bkg_w+jets wenu_np1 107681
-bkg_w+jets wenu_np2 107682
-bkg_w+jets wenu_np3 107683
-bkg_w+jets wenu_np4 107684
-bkg_w+jets wenu_np5 107685
-bkg_w+jets wmunu_np0 107690
-bkg_w+jets wmunu_np1 107691
-bkg_w+jets wmunu_np2 107692
-bkg_w+jets wmunu_np3 107693
-bkg_w+jets wmunu_np4 107694
-bkg_w+jets wmunu_np5 107695
-bkg_w+jets wtaunu_np0 107700
-bkg_w+jets wtaunu_np1 107701
-bkg_w+jets wtaunu_np2 107702
-bkg_w+jets wtaunu_np3 107703
-bkg_w+jets wtaunu_np4 107704
-bkg_w+jets wtaunu_np5 107705
-bkg_top+lep top_tchan_e 117360
-bkg_top+lep top_tchan_mu 117361
-bkg_top+lep top_tchan_tau 117362
-bkg_z+jets zee_np0_mll10to60 146830
-bkg_z+jets zee_np1_mll10to60 146831
-bkg_z+jets zee_np2_mll10to60 146832
-bkg_z+jets zee_np3_mll10to60 146833
-bkg_z+jets zee_np4_mll10to60 146834
-bkg_z+jets zee_np5_mll10to60 146835
-bkg_z+jets zmumu_np0_mll10to60 146840
-bkg_z+jets zmumu_np1_mll10to60 146841
-bkg_z+jets zmumu_np2_mll10to60 146842
-bkg_z+jets zmumu_np3_mll10to60 146843
-bkg_z+jets zmumu_np4_mll10to60 146844
-bkg_z+jets zmumu_np5_mll10to60 146845
-bkg_z+jets ztautau_np0_mll10to60 146850
-bkg_z+jets ztautau_np1_mll10to60 146851
-bkg_z+jets ztautau_np2_mll10to60 146852
-bkg_z+jets ztautau_np3_mll10to60 146853
-bkg_z+jets ztautau_np4_mll10to60 146854
-bkg_z+jets ztautau_np5_mll10to60 146855
-bkg_z+jets vbf_zee_np0 167320
-bkg_z+jets vbf_zee_np1 167321
-bkg_z+jets vbf_zee_np2 167322
-bkg_z+jets vbf_zee_np3 167323
-bkg_z+jets vbf_zee_np4 167324
-bkg_z+jets vbf_zee_np5 147078
-bkg_z+jets vbf_zmumu_np0 167330
-bkg_z+jets vbf_zmumu_np1 167331
-bkg_z+jets vbf_zmumu_np2 167332
-bkg_z+jets vbf_zmumu_np3 167333
-bkg_z+jets vbf_zmumu_np4 167334
-bkg_z+jets vbf_zmumu_np5 147086
-bkg_z+jets vbf_atau_ztautau_np0 167340
-bkg_z+jets vbf_atau_ztautau_np1 167341
-bkg_z+jets vbf_atau_ztautau_np2 167342
-bkg_z+jets vbf_atau_ztautau_np3 167343
-bkg_z+jets vbf_atau_ztautau_np4 167344
-bkg_z+jets vbf_atau_ztautau_np5 147094
+htt_gg 161566
+htt_vbf 161606
+htt_wh 161646
+htt_zh 161686
+diboson_ww 105985
+diboson_zz 105986
+diboson_wz 105987
+z+jets_zee_np0 107650
+z+jets_zee_np1 107651
+z+jets_zee_np2 107652
+z+jets_zee_np3 107653
+z+jets_zee_np4 107654
+z+jets_zee_np5 107655
+z+jets_zmumu_np0 107660
+z+jets_zmumu_np1 107661
+z+jets_zmumu_np2 107662
+z+jets_zmumu_np3 107663
+z+jets_zmumu_np4 107664
+z+jets_zmumu_np5 107665
+z+jets_ztautau_np0 107670
+z+jets_ztautau_np1 107671
+z+jets_ztautau_np2 107672
+z+jets_ztautau_np3 107673
+z+jets_ztautau_np4 107674
+z+jets_ztautau_np5 107675
+w+jets_wenu_np0 107680
+w+jets_wenu_np1 107681
+w+jets_wenu_np2 107682
+w+jets_wenu_np3 107683
+w+jets_wenu_np4 107684
+w+jets_wenu_np5 107685
+w+jets_wmunu_np0 107690
+w+jets_wmunu_np1 107691
+w+jets_wmunu_np2 107692
+w+jets_wmunu_np3 107693
+w+jets_wmunu_np4 107694
+w+jets_wmunu_np5 107695
+w+jets_wtaunu_np0 107700
+w+jets_wtaunu_np1 107701
+w+jets_wtaunu_np2 107702
+w+jets_wtaunu_np3 107703
+w+jets_wtaunu_np4 107704
+w+jets_wtaunu_np5 107705
+top+lep_top_tchan_e 117360
+top+lep_top_tchan_mu 117361
+top+lep_top_tchan_tau 117362
+z+jets_zee_np0_mll10to60 146830
+z+jets_zee_np1_mll10to60 146831
+z+jets_zee_np2_mll10to60 146832
+z+jets_zee_np3_mll10to60 146833
+z+jets_zee_np4_mll10to60 146834
+z+jets_zee_np5_mll10to60 146835
+z+jets_zmumu_np0_mll10to60 146840
+z+jets_zmumu_np1_mll10to60 146841
+z+jets_zmumu_np2_mll10to60 146842
+z+jets_zmumu_np3_mll10to60 146843
+z+jets_zmumu_np4_mll10to60 146844
+z+jets_zmumu_np5_mll10to60 146845
+z+jets_ztautau_np0_mll10to60 146850
+z+jets_ztautau_np1_mll10to60 146851
+z+jets_ztautau_np2_mll10to60 146852
+z+jets_ztautau_np3_mll10to60 146853
+z+jets_ztautau_np4_mll10to60 146854
+z+jets_ztautau_np5_mll10to60 146855
+z+jets_vbf_zee_np0 167320
+z+jets_vbf_zee_np1 167321
+z+jets_vbf_zee_np2 167322
+z+jets_vbf_zee_np3 167323
+z+jets_vbf_zee_np4 167324
+z+jets_vbf_zee_np5 147078
+z+jets_vbf_zmumu_np0 167330
+z+jets_vbf_zmumu_np1 167331
+z+jets_vbf_zmumu_np2 167332
+z+jets_vbf_zmumu_np3 167333
+z+jets_vbf_zmumu_np4 167334
+z+jets_vbf_zmumu_np5 147086
+z+jets_vbf_atau_ztautau_np0 167340
+z+jets_vbf_atau_ztautau_np1 167341
+z+jets_vbf_atau_ztautau_np2 167342
+z+jets_vbf_atau_ztautau_np3 167343
+z+jets_vbf_atau_ztautau_np4 167344
+z+jets_vbf_atau_ztautau_np5 147094

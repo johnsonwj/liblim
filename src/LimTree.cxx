@@ -3,46 +3,41 @@
  *
  *       Filename:  LimTree.cxx
  *
- *    Description:  Contains relevant branches of a Common Ntuple for event selection
- *                  and limit analysis.
- *                  Also contains convenience methods for running cut flow
- *                  and reconstructing mass.
+ *    Description:  
  *
  *        Version:  1.0
- *        Created:  04/29/2013 12:49:37 PM
+ *        Created:  05/25/2013 12:52:55 PM
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  William Johnson, wjohnson@cern.ch
- *   Organization:  University of Washington
+ *         Author:  William Johnson (), wjohnson@cern.ch
+ *   Organization:  
  *
  * =====================================================================================
  */
 
 #define LimTree_impl
+
 #include "LimTree.h"
+
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+long LimTree::get_events_remaining() { return (tree->GetEntries() - current_event_idx); }
 
-long LimTree::getEventsRemaining() { return (tree->GetEntries() - currentEventIdx); }
+long LimTree::load_next() {
+    if (tree == 0) return -1;
 
-long LimTree::loadNext() {
-    if ( tree == 0 ) return -1;
+    current_event_idx++;
 
-    currentEventIdx++;
-
-    int jj = tree -> LoadTree(currentEventIdx);
-    int nb = tree -> GetEntry(currentEventIdx);
-
-    if ( jj <  0 ) return -1;
-    if ( nb <= 0 ) return -2;
+    int jj = tree -> LoadTree(current_event_idx); if (jj <  0) return -1;
+    int nb = tree -> GetEntry(current_event_idx); if (nb <= 0) return -2;
 
     pTau = TLorentzVector(0.,0.,0.,0.);
     pTau.SetPtEtaPhiM(tauPt, tauEta, tauPhi, tauMass);
 
     pLep = TLorentzVector(0.,0.,0.,0.);
-    if (mutau)
+    if (is_mutau)
         pLep.SetPtEtaPhiM(lepPt, lepEta, lepPhi, muMass);
     else 
         pLep.SetPtEtaPhiM(lepPt, lepEta, lepPhi, elMass);
@@ -56,140 +51,77 @@ long LimTree::loadNext() {
     pJetSubleading = TLorentzVector(0.,0.,0.,0.);
     pJetSubleading.SetPtEtaPhiM(jet_subleadingPt, jet_subleadingEta, jet_subleadingPhi, jet_subleadingM);
 
+    do_cuts();
+
     return currentEventIdx;
+    
 }
 
-float LimTree::visHiggsMass() {
-    return (pTau + pLep).M();
+/*
+ * 1)  isolated lepton
+ * 2)  hadronic tau
+ * 3)  charge correlated
+ * 4)  tau pt
+ * 5)  lepton eta
+ * 6)  tau eta
+ * -------------------LFV CUTS
+ * 7)  lep pt
+ * 8)  delta phi (MET, tau)
+ * 9)  delta R   (MET, tau)
+ * 10) vis mH
+ */
+void LimTree::do_cuts() {
+    cuts.push_back( is_isoLep );
+    cuts.push_back( is_tauhad );
+    cuts.push_back( is_chargeCorrelated );
+    cuts.push_back( (tauPt > 20) );
+    cuts.push_back( (lepEta < 2.1) );
+    cuts.push_back( (tauEta < 2.3) );
+    cuts.push_back( (lepPt > 50) );
+    cuts.push_back( (fabs(metPhi - tauPhi) < M_PI/2) );
+    cuts.push_back( (pTau.DeltaR(pMet) < 2.5) );
+    cuts.push_back( (vis_mH() > 90) );
 }
 
-float LimTree::metTauFrac() {
-    float num= pTau.X()*pLep.Y() - pTau.Y()*pLep.X();
-    float denh = num + pMet.X()*pLep.Y() - pMet.Y()*pLep.X();
-
-    if (denh > 0) return num/denh;
-    return -1;
-}
-
-float LimTree::metLepFrac() {
-    float num= pTau.X()*pLep.Y() - pTau.Y()*pLep.X();
-    float denl = num - pMet.X()*pLep.Y() + pMet.Y()*pLep.X();
-
-    if (denl > 0) return num/denl;
-    return -1;
-}
-
-float LimTree::collinearMassOld() {
-    float xLep = metLepFrac();
-    float xTau = metTauFrac();
-
-    if (xTau > 0 && xLep > 0)
-        return visHiggsMass() / sqrt( xTau*xLep );
-    return -1;
-}
-
-float LimTree::collinearMassNew() {
-    float xTau = pTau.E() / (pTau.E() + pMet.E());
-    float xLep = 1.;
-
-    if (xTau > 0 && xLep > 0)
-        return visHiggsMass() / sqrt( xTau*xLep );
-    else
-        return -1;
+static int get_ncuts() {
+    return 10;
 }
 
 int LimTree::cutflow() {
-    if (!useDijetCuts) {
-        return tauLepCutFlow();
-    } else { // vbf
-        if (tauLepCutFlow() > 0) return (tauLepCutFlow() + 5);
-        else if (jets_n < 2) return 4;
-        else return dijetCutFlow();
+    int nfail = (int) cuts.size();
+
+    for (int i = 0; i < cuts.size(); i++) {
+        if ( cuts.at(i) ) nfail--;
+        else return nfail;
     }
-}
-
-int LimTree::getNCuts() {
-    if (!useDijetCuts) return 8;
-    else return 13; // vbf
-}
-
-/*
- * 1) isolated lepton
- * 2) tauhad
- * 3) charge correlated
- * 4) tau pt
- * 5) lepton eta
- * 6) tau eta
- * ------------------- BEGIN LFV CUTS
- *  7) lep pt
- *  8) delta phi (met, tau)
- *  9) delta R (met, tau)
- *  10) higgs vis mass
- */
-int LimTree::tauLepCutFlow() {
-    int nfail = 10;
-
-    if (is_isoLep) nfail--;
-    else return nfail;
-
-    if (is_tauHad) nfail--;
-    else return nfail;
-
-    //if ((mutau && is_mutau) || (!mutau && is_eltau)) nfail--;
-    //else return nfail;
-
-    if (is_chargeCorrelated) nfail--;
-    else return nfail;
-
-    if (tauPt > 20) nfail--;
-    else return nfail;
-
-    if ((mutau && fabs(lepEta) < 2.1) || (!mutau && fabs(lepEta) < 2.1)) nfail--;
-    else return nfail;
-
-    if (fabs(tauEta) < 2.3) nfail--;
-    else return nfail;
-
-    if ((mutau && lepPt > 50) || (!mutau && lepPt > 50)) nfail--;
-    else return nfail;
-
-    if (fabs(metPhi - tauPhi) < M_PI/2) nfail--;
-    else return nfail;
-
-//    if ( collinearMassOld() > 100 ) nfail--;
-//    else return nfail;
-
-    if ( pTau.DeltaR(pMet) < 2.5 ) nfail--;
-    else return nfail;
-
-    if ( (pTau+pLep).M() > 90 ) nfail--;
-    else return nfail;
 
     return nfail;
 }
 
-/*
- * 1) leading pt > 40 GeV and subleading > 25 gev
- * 2) delta eta > 4
- * 3) eta1*eta2 < 0
- * 4) dijet mass > 400 GeV
- */
-int LimTree:: dijetCutFlow() {
-    int nfail = 4;
+float LimTree::vis_mH() {
+    return (pTau + pLep).M();
+}
 
-    if (jets_n < 2) return nfail;
+float LimTree::collim_mH_new() {
+    float x_tau = pTau.E() / (pTau.E() + pMet.E());
+    float x_lep = 1.;
 
-    if (jet_leadingPt > 40 && jet_subleadingPt > 25) nfail--;
-    else return nfail;
+    if (x_tau > 0 && x_lep > 0)
+        return ( vis_mH() / sqrt( x_tau*x_lep ) );
 
-    if (jets_deltaEta > 4) nfail--;
-    else return nfail;
+    return -1;
+}
 
-    if (jets_eta1eta2 < 0) nfail--;
-    else return nfail;
+float LimTree::collim_mH_old() {
+    float num  = pTau.X()*pLep.Y() - pTau.Y()*pLep.X();
+    float denh = num + pMet.X()*pLep.Y() - pMet.Y()*pLep.X();
+    float denl = num - pMet.X()*pLep.Y() + pMet.Y()*pLep.X();
 
-    if (jets_dijetM > 400) nfail--;
-    else return nfail;
+    float x_tau = num/denh;
+    float x_lep = num/denl;
 
-    return nfail;
+    if (x_tau > 0 && x_lep > 0)
+        return (vis_mH() / sqrt(x_tau*x_lep));
+
+    return -1;
 }

@@ -3,10 +3,12 @@
  *
  *       Filename:  DatasetIter.h
  *
- *    Description:  
+ *    Description:  This class iterates through the list of datasets given in 
+ *                  ../data/datasets and creates a LimTree which is used to fill
+ *                  histograms.
  *
  *        Version:  1.0
- *        Created:  05/08/13 11:38:31
+ *        Created:  05/24/2013 05:14:38 PM
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -23,14 +25,12 @@
 #include <dirent.h>
 #include <string>
 #include <fstream>
-#include <sstream>
 #include <iostream>
-#include <stdio.h>
 
-#include <TString.h>
 #include <TChain.h>
 
 #include "LimTree.h"
+#include "liblim.h"
 
 using namespace std;
 
@@ -39,32 +39,21 @@ class DatasetIter {
         DatasetIter();
         virtual ~DatasetIter();
 
-        bool nextOutput();
-        int nextInput();
+        bool next();
 
-        int getNCuts();
-
-        LimTree* getLimTree();
-        string getOutputFilename();
+        LimTree* get_limtree();
+        const char* get_output_filename();
 
     private:
-        unsigned int currentOutputIndex;
-        unsigned int currentInputIndex;
+        unsigned current_dataset_index;
 
-        string currentOutputName;
-        LimTree* currentLimTree;
+        LimTree* current_limtree;
+        string current_output_name;
 
-        char bkg_filebase[128];
-        char lfv_filebase[128];
+        const string bkg_filebase = "/phys/groups/tev/scratch3/users/dataset/lhCNv01-04/";
+        const string lfv_filebase = "/phys/groups/tev/scratch3/users/wjohnson/datasets/";
+        const string dslist_file = "data/datasets";
 
-        char dslist_file[128];
-
-        const string outs[12] = 
-            {"gg_htm", "vbf_htm", "wh_htm", "zh_htm", 
-            "gg_htt", "vbf_htt", "wh_htt", "zh_htt", 
-                "diboson", "z+jets", "w+jets", "top+lep"};
-
-        vector<string> types;
         vector<string> names;
         vector<string> dsids;
 };
@@ -74,11 +63,7 @@ class DatasetIter {
 #ifdef DSIter_impl
 
 DatasetIter::DatasetIter() {
-    strcpy(bkg_filebase,"/phys/groups/tev/scratch3/users/dataset/lhCNv01-04/");
-    strcpy(lfv_filebase,"/phys/groups/tev/scratch3/users/wjohnson/datasets/");
-    strcpy(dslist_file,"data/datasets");
-    currentInputIndex = 0;
-    currentOutputIndex = -1;
+    current_dataset_index = -1;
 
     ifstream infile(DatasetIter::dslist_file);
 
@@ -87,9 +72,8 @@ DatasetIter::DatasetIter() {
         if (line.size() < 1 || line.at(0) == '#') continue;
 
         istringstream iss(line);
-        string type,name,dsid;
-        if (iss >> type >> name >> dsid) {
-            types.push_back(type);
+        string name,dsid;
+        if (iss >> name >> dsid) {
             names.push_back(name);
             dsids.push_back(dsid);
         }
@@ -98,8 +82,7 @@ DatasetIter::DatasetIter() {
 
 DatasetIter::~DatasetIter() {};
 
-LimTree* DatasetIter::getLimTree() { return currentLimTree; }
-string DatasetIter::getOutputFilename() { return currentOutputName; }
-
+LimTree* DatasetIter::get_limtree() { return current_limtree; };
+string DatasetIter::get_output_filename() { return current_output_name; }
 
 #endif

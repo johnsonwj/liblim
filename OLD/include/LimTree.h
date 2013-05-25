@@ -3,15 +3,14 @@
  *
  *       Filename:  LimTree.h
  *
- *    Description:  LimTree is a wrapper class for a TTree which handles branch
- *                  assignment, tree loading, herp derp
+ *    Description:  Header file for LimTree; also includes constructor
  *
  *        Version:  1.0
- *        Created:  05/24/2013 09:49:19 PM
+ *        Created:  04/29/2013 01:39:38 PM
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  William Johnson (wjohnson), wjohnson@cern.ch
+ *         Author:  William Johnson, wjohnson@cern.ch
  *   Organization:  University of Washington
  *
  * =====================================================================================
@@ -20,9 +19,11 @@
 #ifndef LimTree_h
 #define LimTree_h
 
+#include <stdlib.h>
 #include <iostream>
-#include <vector>
+#include <math.h>
 
+#include <vector>
 #include <TROOT.h>
 #include <TBranch.h>
 #include <TTree.h>
@@ -32,8 +33,6 @@
 #include <TObjArray.h>
 #include <TChain.h>
 
-#include "liblim.h"
-
 using namespace std;
 
 class LimTree {
@@ -41,54 +40,84 @@ class LimTree {
         LimTree(TChain*);
         virtual ~LimTree();
 
+        // MC stuff
         float weight;
-        unsigned run_number;
-        unsigned evt_number;
+        unsigned int runNumber;
+        unsigned int evtNumber;
 
-        void set_mutau();
-        void set_etau();
+        long getEventsRemaining();
 
-        long get_events_remaining();
-        
-        /* 
-         *  Loads the next event and returns the event number.
-         *  If there is no next event (tree->LoadTree(n) returns -1)
-         *  then load_next() returns -1. If there was an event but no
-         *  bytes were loaded (tree->GetEvent(n) returns <= 0)
-         */
-        long load_next();
-
-        const vector<bool> cuts;
-        static int get_ncuts();
         /*
-         * Returns an integer for how many cuts were left INCLUDING and AFTER
-         * the first cut that failed.
+         * Loads the next event and returns the event number.
+         * If there is no next event [[ tree -> LoadTree(n) returns -1 ]]
+         * then it returns -1. If there is an event but no bytes were loaded
+         * [[ tree -> GetEvent(n) returns <= 0 ]] it returns -2.
+         */
+        long loadNext(); 
+
+        /*
+         * Performs a cut flow which does or does not include dijet cuts
+         * depending on the doDijetCuts field. 
+         * Returns an integer for how many cuts were left
+         * INCLUDING and AFTER the first failure. So passing all cuts returns 0
          */
         int cutflow();
+        int getNCuts();
 
-        float vis_mH();
-        float collim_mH_new();
-        float collim_mH_old();
+        /*
+         * Sets whether we are looking for H -> mu tau or H -> e tau.
+         * Default to mu tau.
+         */
+        void setETau();
+        void setMuTau();
 
-        TLorentzVector pTau, pLep, pMet, pJetLeading, pJetSubleading;
+        /*
+         * Decide whether to use dijet cuts
+         */
+        void setUseDijetCuts(bool);
+
+        float visHiggsMass(); // returns the *visible* Higgs mass
+
+        float metTauFrac();
+        float metLepFrac();
+
+        // returns the Higgs mass reconstructed with the collinear approx.
+        float collinearMassOld();
+
+        /*
+         * Returns the Higgs mass reconstructed with the collinear approximation,
+         * and the tau mass constraint--we can solve the Higgs mass exactly
+         * (assuming collinear MET) for FV decays.
+         */
+        float collinearMassNew();
+
+        // access to 4 vectors for the shits of it
+        TLorentzVector pTau;
+        TLorentzVector pLep;
+        TLorentzVector pMet;
+        TLorentzVector pJetLeading;
+        TLorentzVector pJetSubleading;
 
     private:
-        void do_cuts();
-
         TChain* tree;
 
-        bool is_mutau;
+        bool mutau; // true = H -> mu tau; false = H -> e tau
+        bool useDijetCuts;
 
-        static const float e_mass;
-        static const float mu_mass;
-        static const float tau_mass;
+        // constants
+        // masses in MeV; avg values reported by PDG
+        static const float elMass;
+        static const float muMass;
+        static const float tauMass;
 
         static const float GeV;
 
-        TBranch* b_weight;
-        TBranch* b_run_number;
-        TBranch* b_evt_number;
 
+        TBranch* b_weight;
+        TBranch* b_runNumber;
+        TBranch* b_evtNumber;
+
+        // selection branches and variables
         int vertices;
         bool is_tauHad;
         bool is_mutau;
@@ -154,28 +183,30 @@ class LimTree {
         TBranch* b_lepEta;
         TBranch* b_lepPhi;
 
-        long current_event_idx;
+        long currentEventIdx;
+
+        int tauLepCutFlow(); // cuts involving tau and lep which apply to all production channels
+        int dijetCutFlow(); // cuts involving dijet
 };
 
 #endif
 
 #ifdef LimTree_impl
 
-// avg values from PDG
-const float LimTree::e_mass = 0.000510998928;
-const float LimTree::mu_mass = 0.1056583715;
-const float LimTree::tau_mass = 1.77682;
-
-const float LimTree::GeV = 1000.
+const float LimTree::elMass = 0.000510998928;
+const float LimTree::muMass = 0.1056583715;
+const float LimTree::tauMass = 1.77682;
+const float LimTree::GeV = 1000.;
 
 LimTree::LimTree(TChain* chain) {
     tree = chain;
 
-    is_mutau = true;
+    mutau = true;
+    useDijetCuts = false;
 
     weight = 0;
-    run_number = 0;
-    evt_number = 0;
+    runNumber = 0;
+    evtNumber = 0;
 
     vertices = 0;
     is_tauHad = 0;
@@ -207,7 +238,7 @@ LimTree::LimTree(TChain* chain) {
     lepEta = 0;
     lepPhi = 0;
 
-    current_event_idx = -1;
+    currentEventIdx = -1;
 
     if (tree -> GetEntries() == 0) return;
 
@@ -242,16 +273,19 @@ LimTree::LimTree(TChain* chain) {
     tree -> SetBranchAddress("evtsel_is_jet_centrality", &jets_centrality, &b_jets_centrality);
     tree -> SetBranchAddress("evtsel_jets_deltaEta", &jets_deltaEta, &b_jets_deltaEta);
     tree -> SetBranchAddress("evtsel_dijet_mass", &jets_dijetM, &b_jets_dijetM);
+
 }
 
 LimTree::~LimTree() {
     if (!tree) return;
     TObjArray* file_list = tree->GetListOfFiles();
-    for (int i = 0; i < file_list->GetEntriesFast(); i++)
+    for ( int i = 0; i < file_list->GetEntriesFast(); i++ ) {
         delete (TFile*) file_list->At(i);
-}
+    }
+};
 
-void LimTree::set_mutau() { is_mutau = true; }
-void LimTree::set_etau()  { is_etau  = true; }
+void LimTree::setMuTau() { mutau = true; }
+void LimTree::setETau()  { mutau = false; }
+void LimTree::setUseDijetCuts(bool u) { useDijetCuts = u; }
 
 #endif

@@ -3,15 +3,15 @@
  *
  *       Filename:  DatasetIter.cxx
  *
- *    Description:  
+ *    Description:  Implements the next() method of DatasetIter.
  *
  *        Version:  1.0
- *        Created:  05/08/13 11:54:29
+ *        Created:  05/24/2013 05:29:59 PM
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  William Johnson (wjohnson), wjohnson@cern.ch
- *   Organization:  University of Washington
+ *         Author:  William Johnson (), wjohnson@cern.ch
+ *   Organization:  
  *
  * =====================================================================================
  */
@@ -20,68 +20,52 @@
 
 #include "DatasetIter.h"
 
-bool DatasetIter::nextOutput() {
-    currentOutputIndex++;
-    if (currentOutputIndex >= 12) return false;
+bool DatasetIter::next() {
+    current_dataset_index++;
+    if (current_dataset_index >= dsids.size()) return false;
 
-    currentOutputName = "hists/" + outs[currentOutputIndex];
-    currentInputIndex = 0;
+    string this_name = names.at(current_dataset_index);
+    string this_dsid = dsids.at(current_dataset_index);
 
-    return true;
-}
-    
-
-int DatasetIter::nextInput() {
-    if (currentInputIndex >= dsids.size()) return -1;
-
-    if ( types.at(currentInputIndex).find( outs[currentOutputIndex] ) == string::npos) {
-        currentInputIndex++;
-        return 0;
-    }
+    current_output_name = "hists/" + this_name;
 
     string topdir_name;
-    DIR* topdir;
-    struct dirent* topdirEntry;
+    if ( contains(this_name, "htm") || contains(this_name, "hte") )
+        topdir_name = lfv_filebase;
+    else
+        topdir_name = bkg_filebase;
 
     TChain* chain = new TChain("tau");
 
-    if ( types.at(currentInputIndex).find("bk") != string::npos ) {
-        topdir_name = bkg_filebase;
-        topdir = opendir( bkg_filebase );
-    } else {
-        topdir_name = lfv_filebase;
-        topdir = opendir( lfv_filebase );
-    }
-
-    //cout << "topdir is " << topdir_name << endl;
+    DIR* topdir = opendir(topdir_name);
+    struct dirent* topdir_entry;
 
     if (topdir) {
-        while ( (topdirEntry = readdir(topdir)) != 0 ) {
-            if ( ((string) topdirEntry->d_name).find( dsids.at( currentInputIndex ) ) != string::npos ) {
-                DIR* dsdir;
-                struct dirent* dsdirEntry;
+        while ( (topdir_entry = readdir(topdir)) ) { // iterate through dataset folders
+            if ( contains(topdir_entry->d_name, this_dsid) ) {
 
-                if ( (dsdir = opendir((topdir_name + topdirEntry->d_name).data())) != 0 ) {
-                    while ( (dsdirEntry = readdir(dsdir)) != 0 ) {
-                        if ( ((string)dsdirEntry->d_name).find(".root") != string::npos ) {
-                            //cout << "dsdirEntry " << dsdirEntry->d_name << endl;
-                            chain->Add((topdir_name + topdirEntry->d_name + "/" + dsdirEntry->d_name).data());
-                        }
+                DIR* dataset_dir = opendir( (topdir_name + topdir_entry->d_name).data() );
+                struct dirent* dsdir_entry;
+
+                if (dataset_dir) {
+                    while ( (dsdir_entry = readdir(dsdir)) ) { // iterate over files in dataset directory
+                        // add all .root files to chain
+                        if ( contains( dsdir_entry->d_name, ".root" ) )
+                            chain -> Add((topdir_name + topdir_entry->d_name + "/" + dsdir_entry->d_name).data());
                     }
+
+                    closedir(dataset_dir);
                 }
             }
         }
+
+        closedir(topdir);
     }
 
-    cout << "currently doing " << names.at(currentInputIndex) 
-        << ", chain has " << chain->GetEntries() << " events" << endl;
+    cout << "currently doing " << this_name << << ", chain has " << chain->GetEntries() << " events" << endl;
 
-    currentLimTree = new LimTree(chain);
+    current_limtree = new LimTree(chain);
+    current_dataset_index++;
 
-    //if ( names.at(currentInputIndex).find("vbf") != string::npos )
-    //    currentLimTree->setUseDijetCuts(true);
-    
-    currentInputIndex++;
-
-    return 1;
+    return true;
 }
