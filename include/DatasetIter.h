@@ -48,14 +48,15 @@ class DatasetIter {
     private:
         unsigned current_dataset_index;
 
-        LimTree* current_limtree;
-        string current_output_name;
-
         static const string ds_dir; 
         static const string dslist_file;  
 
+        static const float integrated_luminosity;
+
         vector<string> names;
         vector<string> dsids;
+        vector<float>  yields;
+        vector<float>  scales;
 };
 
 #endif
@@ -64,6 +65,7 @@ class DatasetIter {
 
 const string DatasetIter::ds_dir = "/phys/groups/tev/scratch3/users/dataset/lhCNv01-04/";
 const string DatasetIter::dslist_file  = "data/datasets";
+const float DatasetIter::integrated_luminosity = 20.3398; // fb-1
 
 DatasetIter::DatasetIter() {
     
@@ -73,20 +75,24 @@ DatasetIter::DatasetIter() {
 
     string line;
     while (getline(infile,line)) {
-        if (line.size() < 1 || line.at(0) == '#') continue;
+        if (line.size() < 10 || line.at(0) == '#') continue;
 
         istringstream iss(line);
         string name,dsid;
-        if (iss >> name >> dsid) {
+        float a,b,c,n
+        if (iss >> name >> dsid >> a >> b >> c >> n) {
             names.push_back(name);
             dsids.push_back(dsid);
+
+            float y = a*b*c*1000*integrated_luminosity; // 1000 factor is because xsecs are in pb
+            yields.push_back(y);
+            scales.push_back(y/n);
         }
     }
 }
 
 DatasetIter::~DatasetIter() {};
 
-LimTree* DatasetIter::get_limtree() { return current_limtree; };
-string DatasetIter::get_output_filename() { return current_output_name; }
+string DatasetIter::get_output_filename() { return "hists/" + names.at(current_dataset_index); }
 
 #endif

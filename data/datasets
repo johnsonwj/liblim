@@ -1,91 +1,99 @@
-# [bkg_{category}|lfv] [name] [dsid]
+# name dsid yield_factors [units: picobarns!!] nevents
 # bkg samples in /phys/groups/tev/scratch3/users/dataset/lhCNv01-04/
 # lfv samples in /phys/groups/tev/scratch3/users/wjohnson/datasets/
 
-htm_gg 169670
-htm_vbf 169672
-htm_wh 169674
-htm_zh 169676
+htm_gg 169670                               0.061488      1.0    0.456192        200000.
+hte_gg 169671                               0.061488      1.0    0.456192        200000.
+htm_vbf 169672                              0.0491085     1.0    0.456192        200000.
+hte_vbf 169673                              0.0491085     1.0    0.456192        200000.
+htm_wh 169674                               0.00219429    1.0    0.456192        50000.
+hte_wh 169675                               0.00219429    1.0    0.456192        50000.
+htm_zh 169676                               0.00124205    1.0    0.456192        50000.
+hte_zh 169677                               0.00124205    1.0    0.456192        50000.
 
-htt_gg 161566
-htt_vbf 161606
-htt_wh 161646
-htt_zh 161686
-diboson_ww 105985
-diboson_zz 105986
-diboson_wz 105987
-z+jets_zee_np0 107650
-z+jets_zee_np1 107651
-z+jets_zee_np2 107652
-z+jets_zee_np3 107653
-z+jets_zee_np4 107654
-z+jets_zee_np5 107655
-z+jets_zmumu_np0 107660
-z+jets_zmumu_np1 107661
-z+jets_zmumu_np2 107662
-z+jets_zmumu_np3 107663
-z+jets_zmumu_np4 107664
-z+jets_zmumu_np5 107665
-z+jets_ztautau_np0 107670
-z+jets_ztautau_np1 107671
-z+jets_ztautau_np2 107672
-z+jets_ztautau_np3 107673
-z+jets_ztautau_np4 107674
-z+jets_ztautau_np5 107675
-w+jets_wenu_np0 107680
-w+jets_wenu_np1 107681
-w+jets_wenu_np2 107682
-w+jets_wenu_np3 107683
-w+jets_wenu_np4 107684
-w+jets_wenu_np5 107685
-w+jets_wmunu_np0 107690
-w+jets_wmunu_np1 107691
-w+jets_wmunu_np2 107692
-w+jets_wmunu_np3 107693
-w+jets_wmunu_np4 107694
-w+jets_wmunu_np5 107695
-w+jets_wtaunu_np0 107700
-w+jets_wtaunu_np1 107701
-w+jets_wtaunu_np2 107702
-w+jets_wtaunu_np3 107703
-w+jets_wtaunu_np4 107704
-w+jets_wtaunu_np5 107705
-top+lep_top_tchan_e 117360
-top+lep_top_tchan_mu 117361
-top+lep_top_tchan_tau 117362
-z+jets_zee_np0_mll10to60 146830
-z+jets_zee_np1_mll10to60 146831
-z+jets_zee_np2_mll10to60 146832
-z+jets_zee_np3_mll10to60 146833
-z+jets_zee_np4_mll10to60 146834
-z+jets_zee_np5_mll10to60 146835
-z+jets_zmumu_np0_mll10to60 146840
-z+jets_zmumu_np1_mll10to60 146841
-z+jets_zmumu_np2_mll10to60 146842
-z+jets_zmumu_np3_mll10to60 146843
-z+jets_zmumu_np4_mll10to60 146844
-z+jets_zmumu_np5_mll10to60 146845
-z+jets_ztautau_np0_mll10to60 146850
-z+jets_ztautau_np1_mll10to60 146851
-z+jets_ztautau_np2_mll10to60 146852
-z+jets_ztautau_np3_mll10to60 146853
-z+jets_ztautau_np4_mll10to60 146854
-z+jets_ztautau_np5_mll10to60 146855
-z+jets_vbf_zee_np0 167320
-z+jets_vbf_zee_np1 167321
-z+jets_vbf_zee_np2 167322
-z+jets_vbf_zee_np3 167323
-z+jets_vbf_zee_np4 167324
-z+jets_vbf_zee_np5 147078
-z+jets_vbf_zmumu_np0 167330
-z+jets_vbf_zmumu_np1 167331
-z+jets_vbf_zmumu_np2 167332
-z+jets_vbf_zmumu_np3 167333
-z+jets_vbf_zmumu_np4 167334
-z+jets_vbf_zmumu_np5 147086
-z+jets_vbf_atau_ztautau_np0 167340
-z+jets_vbf_atau_ztautau_np1 167341
-z+jets_vbf_atau_ztautau_np2 167342
-z+jets_vbf_atau_ztautau_np3 167343
-z+jets_vbf_atau_ztautau_np4 167344
-z+jets_vbf_atau_ztautau_np5 147094
+htt_gg 161566                               0.0777208     1.0    0.456192       1994795.
+htt_vbf 161606                              0.0620731     1.0    0.456192       1999895.
+htt_wh 161646                               0.00277358    1.0    0.456192       499999. 
+htt_zh 161686                               0.00156994    1.0    0.456192       499998. 
+
+diboson_ww 105985                           53.9          1.0    0.38212        2494694.
+diboson_zz 105986                           7.32          1.0    0.21165        999797. 
+diboson_wz 105987                           22.3          1.0    0.30546        249999.
+
+z+jets_zee_np0 107650                       711.77        1.23   1.0            5984290.
+z+jets_zee_np1 107651                       155.17        1.23   1.0            1329994.
+z+jets_zee_np2 107652                       48.745        1.23   1.0            404798. 
+z+jets_zee_np3 107653                       14.225        1.23   1.0            109998. 
+z+jets_zee_np4 107654                       3.7595        1.23   1.0            30000.  
+z+jets_zee_np5 107655                       1.0945        1.23   1.0            10000.  
+z+jets_zmumu_np0 107660                     712.11        1.23   1.0            6609982.
+z+jets_zmumu_np1 107661                     154.77        1.23   1.0            1334897.
+z+jets_zmumu_np2 107662                     48.912        1.23   1.0            404897. 
+z+jets_zmumu_np3 107663                     14.226        1.23   1.0            110000. 
+z+jets_zmumu_np4 107664                     3.7838        1.23   1.0            29999.  
+z+jets_zmumu_np5 107665                     1.1148        1.23   1.0            10000.  
+z+jets_ztautau_np0 107670                   711.81        1.23   1.0            6607090.
+z+jets_ztautau_np1 107671                   155.13        1.23   1.0            1334896.
+z+jets_ztautau_np2 107672                   48.804        1.23   1.0            404900. 
+z+jets_ztautau_np3 107673                   14.16         1.23   1.0            110000. 
+z+jets_ztautau_np4 107674                   3.7744        1.23   1.0            28999.  
+z+jets_ztautau_np5 107675                   1.1163        1.23   1.0            10000.  
+z+jets_zee_np0_mll10to60 146830             3477.2        1.19   1.0            1000000.
+z+jets_zee_np1_mll10to60 146831             108.8         1.19   1.0            299498. 
+z+jets_zee_np2_mll10to60 146832             52.767        1.19   1.0            396499. 
+z+jets_zee_np3_mll10to60 146833             11.297        1.19   1.0            145499. 
+z+jets_zee_np4_mll10to60 146834             2.5836        1.19   1.0            40000.  
+z+jets_zee_np5_mll10to60 146835             0.69267       1.19   1.0            10000.  
+z+jets_zmumu_np0_mll10to60 146840           3477.1        1.19   1.0            997896. 
+z+jets_zmumu_np1_mll10to60 146841           108.75        1.19   1.0            300000. 
+z+jets_zmumu_np2_mll10to60 146842           52.741        1.19   1.0            396499. 
+z+jets_zmumu_np3_mll10to60 146843           11.241        1.19   1.0            145499. 
+z+jets_zmumu_np4_mll10to60 146844           2.6005        1.19   1.0            39999.  
+z+jets_zmumu_np5_mll10to60 146845           0.69373       1.19   1.0            10000.  
+z+jets_ztautau_np0_mll10to60 146850         3477.1        1.19   1.0            949896.
+z+jets_ztautau_np1_mll10to60 146851         108.74        1.19   1.0            298899.
+z+jets_ztautau_np2_mll10to60 146852         52.732        1.19   1.0            397500.
+z+jets_ztautau_np3_mll10to60 146853         11.326        1.19   1.0            150000.
+z+jets_ztautau_np4_mll10to60 146854         2.592         1.19   1.0            39999. 
+z+jets_ztautau_np5_mll10to60 146855         0.6929        1.19   1.0            10000. 
+z+jets_vbf_zee_np0 167320                   712.08        1.23   0.033522       6419080.
+z+jets_vbf_zee_np1 167321                   154.99        1.23   0.080913       3394288.
+z+jets_vbf_zee_np2 167322                   48.833        1.23   0.2463         3134987.
+z+jets_vbf_zee_np3 167323                   14.183        1.23   0.4692         1685796.
+z+jets_vbf_zee_np4 167324                   3.7909        1.23   0.67933        653597. 
+z+jets_vbf_zee_np5 147078                   1.1331        1.23   1              295000. 
+z+jets_vbf_zmumu_np0 167330                 712.11        1.23   0.0065069      1261797.
+z+jets_vbf_zmumu_np1 167331                 155           1.23   0.038308       1584693.
+z+jets_vbf_zmumu_np2 167332                 48.945        1.23   0.14105        1734593.
+z+jets_vbf_zmumu_np3 167333                 14.187        1.23   0.35368        1345592.
+z+jets_vbf_zmumu_np4 167334                 3.7943        1.23   0.5921         534799. 
+z+jets_vbf_zmumu_np5 147086                 1.1342        1.23   1              303498. 
+z+jets_vbf_atau_ztautau_np0 167340          712.1         1.23   0.008043       1459597.
+z+jets_vbf_atau_ztautau_np1 167341          154.99        1.23   0.02242        963499. 
+z+jets_vbf_atau_ztautau_np2 167342          48.85         1.23   0.083617       1078499.
+z+jets_vbf_atau_ztautau_np3 167343          14.185        1.23   0.19376        731898. 
+z+jets_vbf_atau_ztautau_np4 167344          3.7934        1.23   0.30956        267899. 
+z+jets_vbf_atau_ztautau_np5 147094          1.1366        1.23   1              308896. 
+
+w+jets_wenu_np0 107680                      8037.1        1.19   1.0            3459890.
+w+jets_wenu_np1 107681                      1579.2        1.19   1.0            2499491.
+w+jets_wenu_np2 107682                      477.2         1.19   1.0            3769487.
+w+jets_wenu_np3 107683                      133.93        1.19   1.0            1009997.
+w+jets_wenu_np4 107684                      35.622        1.19   1.0            249999. 
+w+jets_wenu_np5 107685                      10.553        1.19   1.0            70000.  
+w+jets_wmunu_np0 107690                     8040          1.19   1.0            3469692.
+w+jets_wmunu_np1 107691                     1580.3        1.19   1.0            2499694.
+w+jets_wmunu_np2 107692                     477.5         1.19   1.0            3719890.
+w+jets_wmunu_np3 107693                     133.94        1.19   1.0            1006698.
+w+jets_wmunu_np4 107694                     35.636        1.19   1.0            254999. 
+w+jets_wmunu_np5 107695                     10.571        1.19   1.0            69900.  
+w+jets_wtaunu_np0 107700                    8035.8        1.19   1.0            3419990.
+w+jets_wtaunu_np1 107701                    1579.8        1.19   1.0            1899800.
+w+jets_wtaunu_np2 107702                    477.55        1.19   1.0            3765989.
+w+jets_wtaunu_np3 107703                    133.79        1.19   1.0            1009998.
+w+jets_wtaunu_np4 107704                    35.583        1.19   1.0            249998. 
+w+jets_wtaunu_np5 107705                    10.54         1.19   1.0            65000.  
+
+top+lep_top_tchan_e 117360                  9.48          1.0    1.0            256853.
+top+lep_top_tchan_mu 117361                 9.48          1.0    1.0            256914.
+top+lep_top_tchan_tau 117362                9.48          1.0    1.0            251341.

@@ -20,14 +20,12 @@
 
 #include "DatasetIter.h"
 
-bool DatasetIter::next() {
+LimTree* DatasetIter::next() {
     current_dataset_index++;
     if (current_dataset_index >= dsids.size()) return false;
 
     string this_name = names.at(current_dataset_index);
     string this_dsid = dsids.at(current_dataset_index);
-
-    current_output_name = "hists/" + this_name;
 
     TChain* chain = new TChain("tau");
 
@@ -58,8 +56,8 @@ bool DatasetIter::next() {
 
     cout << "currently doing " << this_name << ", chain has " << chain->GetEntries() << " events" << endl;
 
-    current_limtree = new LimTree(chain);
+    LimTree* lt = new LimTree(chain, yields.at(current_dataset_index), scales.at(current_dataset_index));
     current_dataset_index++;
 
-    return true;
+    return lt;
 }

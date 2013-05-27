@@ -30,7 +30,6 @@
 #include "AtlasStyle.h"
 #include "LimTree.h"
 #include "common.h"
-#include "yield_data.h"
 
 using namespace std;
 
@@ -230,7 +229,6 @@ void draw_cuts() {
                 TH1F* this_hist = it->second;
 
                 if (!is_yield_hist) {
-                    this_hist -> Scale(1./this_hist->GetBinContent(1));
                     this_hist -> SetMinimum(0.);
                 } else {
                     this_hist -> SetMinimum(1.); // for ploting on a log scale

@@ -24,6 +24,8 @@
 #include <math.h>
 
 long LimTree::get_events_remaining() { return (tree->GetEntries() - current_event_idx); }
+float LimTree::get_hist_scale() { return hist_scale; }
+float LimTree::get_total_yield() { return total_yield; }
 
 long LimTree::load_next() {
     if (tree == 0) return -1;

@@ -38,12 +38,15 @@ using namespace std;
 
 class LimTree {
     public:
-        LimTree(TChain*);
+        LimTree(TChain*, float, float);
         virtual ~LimTree();
 
         float weight;
         unsigned run_number;
         unsigned evt_number;
+
+        float get_hist_scale();
+        float get_total_yield();
 
         void set_mutau();
         void set_etau();
@@ -76,6 +79,9 @@ class LimTree {
         void do_cuts();
 
         TChain* tree;
+
+        float hist_scale;
+        float total_yield;
 
         bool mutau;
 
@@ -168,8 +174,10 @@ const float LimTree::tau_mass = 1.77682;
 
 const float LimTree::GeV = 1000.;
 
-LimTree::LimTree(TChain* chain) {
+LimTree::LimTree(TChain* chain, float y, float s) {
     tree = chain;
+    total_yield = y;
+    hist_scale = s;
 
     is_mutau = true;
 
