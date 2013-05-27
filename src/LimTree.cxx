@@ -34,13 +34,13 @@ long LimTree::load_next() {
     int nb = tree -> GetEntry(current_event_idx); if (nb <= 0) return -2;
 
     pTau = TLorentzVector(0.,0.,0.,0.);
-    pTau.SetPtEtaPhiM(tauPt, tauEta, tauPhi, tauMass);
+    pTau.SetPtEtaPhiM(tauPt, tauEta, tauPhi, tau_mass);
 
     pLep = TLorentzVector(0.,0.,0.,0.);
     if (is_mutau)
-        pLep.SetPtEtaPhiM(lepPt, lepEta, lepPhi, muMass);
+        pLep.SetPtEtaPhiM(lepPt, lepEta, lepPhi, mu_mass);
     else 
-        pLep.SetPtEtaPhiM(lepPt, lepEta, lepPhi, elMass);
+        pLep.SetPtEtaPhiM(lepPt, lepEta, lepPhi, e_mass);
 
     pMet = TLorentzVector(0.,0.,0.,0.);
     pMet.SetPtEtaPhiM(met, 0., metPhi, 0.);
@@ -53,7 +53,7 @@ long LimTree::load_next() {
 
     do_cuts();
 
-    return currentEventIdx;
+    return current_event_idx;
     
 }
 
@@ -71,8 +71,10 @@ long LimTree::load_next() {
  * 10) vis mH
  */
 void LimTree::do_cuts() {
+    cuts = vector<bool>();
+
     cuts.push_back( is_isoLep );
-    cuts.push_back( is_tauhad );
+    cuts.push_back( is_tauHad );
     cuts.push_back( is_chargeCorrelated );
     cuts.push_back( (tauPt > 20) );
     cuts.push_back( (lepEta < 2.1) );
@@ -83,14 +85,12 @@ void LimTree::do_cuts() {
     cuts.push_back( (vis_mH() > 90) );
 }
 
-static int get_ncuts() {
-    return 10;
-}
+const int LimTree::ncuts = 10;
 
 int LimTree::cutflow() {
-    int nfail = (int) cuts.size();
+    unsigned nfail = cuts.size();
 
-    for (int i = 0; i < cuts.size(); i++) {
+    for (unsigned i = 0; i < cuts.size(); i++) {
         if ( cuts.at(i) ) nfail--;
         else return nfail;
     }

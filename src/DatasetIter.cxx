@@ -29,29 +29,23 @@ bool DatasetIter::next() {
 
     current_output_name = "hists/" + this_name;
 
-    string topdir_name;
-    if ( contains(this_name, "htm") || contains(this_name, "hte") )
-        topdir_name = lfv_filebase;
-    else
-        topdir_name = bkg_filebase;
-
     TChain* chain = new TChain("tau");
 
-    DIR* topdir = opendir(topdir_name);
+    DIR* topdir = opendir(ds_dir.data());
     struct dirent* topdir_entry;
 
     if (topdir) {
         while ( (topdir_entry = readdir(topdir)) ) { // iterate through dataset folders
             if ( contains(topdir_entry->d_name, this_dsid) ) {
 
-                DIR* dataset_dir = opendir( (topdir_name + topdir_entry->d_name).data() );
+                DIR* dataset_dir = opendir( (ds_dir + topdir_entry->d_name).data() );
                 struct dirent* dsdir_entry;
 
                 if (dataset_dir) {
-                    while ( (dsdir_entry = readdir(dsdir)) ) { // iterate over files in dataset directory
+                    while ( (dsdir_entry = readdir(dataset_dir)) ) { // iterate over files in dataset directory
                         // add all .root files to chain
                         if ( contains( dsdir_entry->d_name, ".root" ) )
-                            chain -> Add((topdir_name + topdir_entry->d_name + "/" + dsdir_entry->d_name).data());
+                            chain -> Add((ds_dir + topdir_entry->d_name + "/" + dsdir_entry->d_name).data());
                     }
 
                     closedir(dataset_dir);
@@ -62,7 +56,7 @@ bool DatasetIter::next() {
         closedir(topdir);
     }
 
-    cout << "currently doing " << this_name << << ", chain has " << chain->GetEntries() << " events" << endl;
+    cout << "currently doing " << this_name << ", chain has " << chain->GetEntries() << " events" << endl;
 
     current_limtree = new LimTree(chain);
     current_dataset_index++;

@@ -1,12 +1,12 @@
 /*
  * =====================================================================================
  *
- *       Filename:  liblim.cxx
+ *       Filename:  common.cxx
  *
- *    Description:  implementation for liblim.h
+ *    Description:  
  *
  *        Version:  1.0
- *        Created:  05/25/2013 03:37:45 PM
+ *        Created:  05/25/13 20:24:41
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -16,11 +16,8 @@
  * =====================================================================================
  */
 
-#define liblim_impl
+#include "common.h"
 
-#include "liblim.h"
-
-bool contains(string1, string2) {
+bool contains(string string1, string string2) {
     return (string1.find(string2) != string::npos);
 }
-

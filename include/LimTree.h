@@ -32,7 +32,7 @@
 #include <TObjArray.h>
 #include <TChain.h>
 
-#include "liblim.h"
+#include "common.h"
 
 using namespace std;
 
@@ -58,8 +58,8 @@ class LimTree {
          */
         long load_next();
 
-        const vector<bool> cuts;
-        static int get_ncuts();
+        vector<bool> cuts;
+        static const int ncuts;
         /*
          * Returns an integer for how many cuts were left INCLUDING and AFTER
          * the first cut that failed.
@@ -77,7 +77,7 @@ class LimTree {
 
         TChain* tree;
 
-        bool is_mutau;
+        bool mutau;
 
         static const float e_mass;
         static const float mu_mass;
@@ -166,7 +166,7 @@ const float LimTree::e_mass = 0.000510998928;
 const float LimTree::mu_mass = 0.1056583715;
 const float LimTree::tau_mass = 1.77682;
 
-const float LimTree::GeV = 1000.
+const float LimTree::GeV = 1000.;
 
 LimTree::LimTree(TChain* chain) {
     tree = chain;
@@ -212,8 +212,8 @@ LimTree::LimTree(TChain* chain) {
     if (tree -> GetEntries() == 0) return;
 
     tree -> SetBranchAddress("evtsel_weight", &weight, &b_weight);
-    tree -> SetBranchAddress("EventNumber", &evtNumber, &b_evtNumber);
-    tree -> SetBranchAddress("RunNumber", &runNumber, &b_runNumber);
+    tree -> SetBranchAddress("EventNumber", &evt_number, &b_evt_number);
+    tree -> SetBranchAddress("RunNumber", &run_number, &b_run_number);
     tree -> SetBranchAddress("evtsel_MET", &met, &b_met);
     tree -> SetBranchAddress("evtsel_MET_phi", &metPhi, &b_metPhi);
     tree -> SetBranchAddress("evtsel_tau_et", &tauPt, &b_tauPt);
@@ -252,6 +252,6 @@ LimTree::~LimTree() {
 }
 
 void LimTree::set_mutau() { is_mutau = true; }
-void LimTree::set_etau()  { is_etau  = true; }
+void LimTree::set_etau()  { is_mutau = false; }
 
 #endif

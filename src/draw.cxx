@@ -29,6 +29,8 @@
 
 #include "AtlasStyle.h"
 #include "LimTree.h"
+#include "common.h"
+#include "yield_data.h"
 
 using namespace std;
 
@@ -54,26 +56,28 @@ const string kinem_hists[n_kinemhists] = {
 const int n_cuthists = 4;
 const string cut_hists[n_cuthists] = {
     "cutflow_full",
-    "cutflow_mH115to135",
+    "cutflow_sig_region",
     "yield_full",
-    "yield_mH115to135"
+    "yield_sig_region"
 };
 
-const int n_cuts = LimTree::get_ncuts() + 1;
-const string cut_names[n_cuts] = {
-    "all",
-    "iso lep",
-    "#tau_{had}",
-    "opp ch",
-    "tau p_{T}",
-    "lep #eta",
-    "tau #eta",
-    "lep pt",
-    "#Delta#phi(MET,#tau)",
-//    "colMassOld",
-    "#Delta R(MET,#tau)",
-    "vis M_{H}"
-};
+const int n_cuts = LimTree::ncuts + 1;
+vector<string> cut_names() {
+    vector<string> cn;
+    cn.push_back("all");
+    cn.push_back("iso lep");
+    cn.push_back("#tau_{had}");
+    cn.push_back("opp ch");
+    cn.push_back("tau p_{T}");
+    cn.push_back("lep #eta");
+    cn.push_back("tau #eta");
+    cn.push_back("lep pt");
+    cn.push_back("#Delta#phi(MET,#tau)");
+//  cn.push_back(  "colMassOld");
+    cn.push_back("#Delta R(MET,#tau)");
+    cn.push_back("vis M_{H}");
+    return cn;
+}
 
 const int n_chan = 4;
 string chan[n_chan] = {
@@ -93,8 +97,10 @@ map<string,TH1F*> get_hists(string hist_name, string p_chan, bool cut_tolerance_
     TH1F* htt_hist;
     TH1F* lfv_hist;
 
+    bool first_done = false;
+
     for (int i = 0; i < n_bkg_groups; i++) {
-        for (int f = 0; f < files.size(); f++) {
+        for (unsigned f = 0; f < files.size(); f++) {
             string file_base = get_base_name( files.at(f) -> GetName() );
 
             if ( contains(file_base, "CT0") ) {
@@ -103,18 +109,28 @@ map<string,TH1F*> get_hists(string hist_name, string p_chan, bool cut_tolerance_
                 if (!cut_tolerance_nonzero) continue;
             }
 
+            cout << file_base << endl;
+
             if ( contains(file_base, bkg_groups[i]) ) {
-                if (current_combined)
-                    current_combined -> Add( files.at(f) -> Get(hist_name.data()) );
-                else
-                    current_combined = new TH1F(files.at(f) -> Get(hist_name.data()));
+                if (first_done) {
+                    TH1F* hhh = (TH1F*) files.at(f) -> Get(hist_name.data());
+
+                    cout << "current_combined int " << current_combined->Integral() << endl;
+                    cout << "hhh              int " << hhh -> Integral() << endl;
+
+                    current_combined -> Add( hhh );
+                } else {
+                    cout << "initializing c_c" << endl;
+                    current_combined = new TH1F(*((TH1F*)files.at(f) -> Get(hist_name.data())));
+                    first_done = true;
+                }
             } else {
                 if ( !contains(file_base, p_chan) ) continue;
                 else {
                     if (!htt_hist && contains(file_base, "htt")) 
-                        htt_hist = file_base -> Get(hist_name.data());
-                    else if (!htm_hist && contains(file_base, "htm"))
-                        htm_hist = file_base -> Get(hist_name.data());
+                        htt_hist = (TH1F*) files.at(f) -> Get(hist_name.data());
+                    else if (!lfv_hist && contains(file_base, "htm"))
+                        lfv_hist = (TH1F*) files.at(f) -> Get(hist_name.data());
                 }
             }
         }
@@ -186,7 +202,7 @@ void _draw(map<string,TH1F*> hists, string out_name, bool logy) {
         
         this_hist -> SetMarkerStyle(20);
 
-        if (logy && this_hist->GetMinimum < 1) this_hist->SetMinimum(1.);
+        if (logy && this_hist->GetMinimum() < 1) this_hist->SetMinimum(1.);
 
         canv.cd();
         if (ndrawn == 0) this_hist->Draw("h");
@@ -221,7 +237,7 @@ void draw_cuts() {
                 }
                 
                 for (int k = 0; k < n_cuts; k++)
-                    this_hist -> GetXaxis() -> SetBinLabel(k+1, cut_names[k].data());
+                    this_hist -> GetXaxis() -> SetBinLabel(k+1, cut_names().at(k).data());
 
             }
 
@@ -256,7 +272,7 @@ void load_files() {
         while ( (dirp = readdir(dp)) ) {
             if ( !contains(dirp->d_name, ".root") ) continue;
 
-            files.push_back( new TFile( string("hists/") + dirp->d_name ) );
+            files.push_back( new TFile( (string("hists/") + dirp->d_name).data() ) );
         }
 
         closedir(dp);

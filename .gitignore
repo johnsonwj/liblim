@@ -1,7 +1,8 @@
 *.swp
 hists/*
 .nfs*
-doHists
+dohists
 draw
 optimize
 yields
+*.o

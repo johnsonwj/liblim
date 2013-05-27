@@ -26,11 +26,12 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 #include <TChain.h>
 
 #include "LimTree.h"
-#include "liblim.h"
+#include "common.h"
 
 using namespace std;
 
@@ -42,7 +43,7 @@ class DatasetIter {
         bool next();
 
         LimTree* get_limtree();
-        const char* get_output_filename();
+        string get_output_filename();
 
     private:
         unsigned current_dataset_index;
@@ -50,9 +51,8 @@ class DatasetIter {
         LimTree* current_limtree;
         string current_output_name;
 
-        const string bkg_filebase = "/phys/groups/tev/scratch3/users/dataset/lhCNv01-04/";
-        const string lfv_filebase = "/phys/groups/tev/scratch3/users/wjohnson/datasets/";
-        const string dslist_file = "data/datasets";
+        static const string ds_dir; 
+        static const string dslist_file;  
 
         vector<string> names;
         vector<string> dsids;
@@ -62,10 +62,14 @@ class DatasetIter {
 
 #ifdef DSIter_impl
 
+const string DatasetIter::ds_dir = "/phys/groups/tev/scratch3/users/dataset/lhCNv01-04/";
+const string DatasetIter::dslist_file  = "data/datasets";
+
 DatasetIter::DatasetIter() {
+    
     current_dataset_index = -1;
 
-    ifstream infile(DatasetIter::dslist_file);
+    ifstream infile(dslist_file.data());
 
     string line;
     while (getline(infile,line)) {
