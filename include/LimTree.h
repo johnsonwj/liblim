@@ -41,6 +41,10 @@ class LimTree {
         LimTree(TChain*, float, float);
         virtual ~LimTree();
 
+//        LimTree* clone();
+        
+        void reset();
+
         float weight;
         unsigned run_number;
         unsigned evt_number;
@@ -80,8 +84,8 @@ class LimTree {
 
         TChain* tree;
 
-        float hist_scale;
         float total_yield;
+        float hist_scale;
 
         bool mutau;
 
@@ -254,9 +258,7 @@ LimTree::LimTree(TChain* chain, float y, float s) {
 
 LimTree::~LimTree() {
     if (!tree) return;
-    TObjArray* file_list = tree->GetListOfFiles();
-    for (int i = 0; i < file_list->GetEntriesFast(); i++)
-        delete (TFile*) file_list->At(i);
+    delete tree->GetCurrentFile();
 }
 
 void LimTree::set_mutau() { is_mutau = true; }

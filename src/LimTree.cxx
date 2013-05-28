@@ -27,6 +27,10 @@ long LimTree::get_events_remaining() { return (tree->GetEntries() - current_even
 float LimTree::get_hist_scale() { return hist_scale; }
 float LimTree::get_total_yield() { return total_yield; }
 
+//LimTree* LimTree::clone() { return new LimTree(tree, total_yield, hist_scale); }
+
+void LimTree::reset() { current_event_idx = -1; }
+
 long LimTree::load_next() {
     if (tree == 0) return -1;
 
@@ -82,7 +86,7 @@ void LimTree::do_cuts() {
     cuts.push_back( (lepEta < 2.1) );
     cuts.push_back( (tauEta < 2.3) );
     cuts.push_back( (lepPt > 50) );
-    cuts.push_back( (fabs(metPhi - tauPhi) < M_PI/2) );
+    cuts.push_back( (pTau.DeltaPhi(pMet) < M_PI/2) );
     cuts.push_back( (pTau.DeltaR(pMet) < 2.5) );
     cuts.push_back( (vis_mH() > 90) );
 }

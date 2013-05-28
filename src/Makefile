@@ -1,4 +1,4 @@
-rootc = ~/usr/local/bin/g++ -Wall -g -std=c++0x -I../include $(shell root-config --cflags --libs)
+rootc = ~/usr/local/bin/g++ -Wall -g -I../include $(shell root-config --cflags --libs)
 
 VPATH = ../include
 

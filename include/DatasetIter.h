@@ -40,10 +40,9 @@ class DatasetIter {
         DatasetIter();
         virtual ~DatasetIter();
 
-        bool next();
+        LimTree* next();
 
-        LimTree* get_limtree();
-        string get_output_filename();
+        string get_dataset_name();
 
     private:
         unsigned current_dataset_index;
@@ -79,7 +78,7 @@ DatasetIter::DatasetIter() {
 
         istringstream iss(line);
         string name,dsid;
-        float a,b,c,n
+        float a,b,c,n;
         if (iss >> name >> dsid >> a >> b >> c >> n) {
             names.push_back(name);
             dsids.push_back(dsid);
@@ -93,6 +92,6 @@ DatasetIter::DatasetIter() {
 
 DatasetIter::~DatasetIter() {};
 
-string DatasetIter::get_output_filename() { return "hists/" + names.at(current_dataset_index); }
+string DatasetIter::get_dataset_name() { return names.at(current_dataset_index); }
 
 #endif

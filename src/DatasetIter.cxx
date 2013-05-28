@@ -22,7 +22,7 @@
 
 LimTree* DatasetIter::next() {
     current_dataset_index++;
-    if (current_dataset_index >= dsids.size()) return false;
+    if (current_dataset_index >= dsids.size()) return 0;
 
     string this_name = names.at(current_dataset_index);
     string this_dsid = dsids.at(current_dataset_index);
@@ -57,7 +57,6 @@ LimTree* DatasetIter::next() {
     cout << "currently doing " << this_name << ", chain has " << chain->GetEntries() << " events" << endl;
 
     LimTree* lt = new LimTree(chain, yields.at(current_dataset_index), scales.at(current_dataset_index));
-    current_dataset_index++;
 
     return lt;
 }

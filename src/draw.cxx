@@ -38,9 +38,9 @@ vector<TFile*> files;
 const int n_kinemhists = 14;
 const string kinem_hists[n_kinemhists] = {
     "h_vismass",
-    "h_collimOld",
-    "h_collimNew",
-    "h_pT",
+    "h_collim_old",
+    "h_collim_new",
+    "h_pt",
     "h_eta",
     "lep_pt",
     "lep_eta",
@@ -52,12 +52,12 @@ const string kinem_hists[n_kinemhists] = {
     "dr_met_tau",
     "dphi_met_tau" };
 
-const int n_cuthists = 4;
+const int n_cuthists = 2;
 const string cut_hists[n_cuthists] = {
     "cutflow_full",
-    "cutflow_sig_region",
+//    "cutflow_sig_region",
     "yield_full",
-    "yield_sig_region"
+//    "yield_sig_region"
 };
 
 const int n_cuts = LimTree::ncuts + 1;
@@ -78,9 +78,15 @@ vector<string> cut_names() {
     return cn;
 }
 
+
 const int n_chan = 4;
 string chan[n_chan] = {
     "gg", "vbf", "wh", "zh"
+};
+
+const int n_bkg_groups = 4;
+const string bkg_groups[n_bkg_groups] = {
+    "diboson", "z+jets", "w+jets", "top+lep"
 };
 
 string get_base_name(string big_filename) {
@@ -89,128 +95,115 @@ string get_base_name(string big_filename) {
             big_filename.size() - big_filename.find_last_of('/') - 6);
 }
 
-map<string,TH1F*> get_hists(string hist_name, string p_chan, bool cut_tolerance_nonzero) {
-    map<string,TH1F*> combined_hists;
+vector<TH1F*> get_hists(string hist_name, string p_chan, bool cut_tolerance_nonzero) {
+    TH1F* htt = 0;
+    TH1F* lfv = 0;
 
-    TH1F* current_combined;
-    TH1F* htt_hist;
-    TH1F* lfv_hist;
+    map< string,vector<TH1F*> > bkgs;
+    // initialize map values
+    for (int i = 0; i < n_bkg_groups; i++)
+        bkgs[bkg_groups[i]] = vector<TH1F*>();
 
-    bool first_done = false;
+    for (unsigned i = 0; i < files.size(); i++) {
+        string bname = get_base_name( files.at(i) -> GetName() );
 
-    for (int i = 0; i < n_bkg_groups; i++) {
-        for (unsigned f = 0; f < files.size(); f++) {
-            string file_base = get_base_name( files.at(f) -> GetName() );
+        if ( !(cut_tolerance_nonzero ^ contains(bname, "CT0")) ) continue;
+        if ( contains(bname, "ht") && !contains(bname, p_chan) ) continue;
 
-            if ( contains(file_base, "CT0") ) {
-                if (cut_tolerance_nonzero) continue;
-            } else {
-                if (!cut_tolerance_nonzero) continue;
-            }
+        TH1F* hhist = (TH1F*) files.at(i) -> Get(hist_name.data());
 
-            cout << file_base << endl;
-
-            if ( contains(file_base, bkg_groups[i]) ) {
-                if (first_done) {
-                    TH1F* hhh = (TH1F*) files.at(f) -> Get(hist_name.data());
-
-                    cout << "current_combined int " << current_combined->Integral() << endl;
-                    cout << "hhh              int " << hhh -> Integral() << endl;
-
-                    current_combined -> Add( hhh );
-                } else {
-                    cout << "initializing c_c" << endl;
-                    current_combined = new TH1F(*((TH1F*)files.at(f) -> Get(hist_name.data())));
-                    first_done = true;
-                }
-            } else {
-                if ( !contains(file_base, p_chan) ) continue;
-                else {
-                    if (!htt_hist && contains(file_base, "htt")) 
-                        htt_hist = (TH1F*) files.at(f) -> Get(hist_name.data());
-                    else if (!lfv_hist && contains(file_base, "htm"))
-                        lfv_hist = (TH1F*) files.at(f) -> Get(hist_name.data());
-                }
-            }
+        for (int j = 0; j < n_bkg_groups; j++) {
+            if ( contains(bname, bkg_groups[j]) )
+                bkgs[bkg_groups[j]].push_back(hhist);
         }
 
-        combined_hists[bkg_groups[i]] = current_combined;
+        if ( contains(bname, "htm") && !lfv ) lfv = hhist; 
+
+        if ( contains(bname, "htt") && !htt ) htt = hhist; 
     }
 
-    combined_hists["htt"] = htt_hist;
-    combined_hists["lfv"] = lfv_hist;
+    vector<TH1F*> combined_hists;
+
+    combined_hists.push_back(lfv);
+    combined_hists.push_back(htt);
+
+    for (int i = 0; i < n_bkg_groups; i++) {
+        TH1F* combi = bkgs[bkg_groups[i]].at(0);
+        for (unsigned j = 1; j < bkgs[bkg_groups[i]].size(); j++) {
+            combi -> Add( bkgs[bkg_groups[i]].at(j) );
+        }
+        combined_hists.push_back(combi);
+    }
 
     return combined_hists;
 }
 
 void draw_sig() {
     for (int c = 0; c < n_chan; c++) {
-        TLegend leg(0.05, 0.8, 0.25, 0.95);
+        TLegend leg(0.75, 0.8, 0.95, 0.95);
         TCanvas canv;
         
         THStack stack("sigstack", ";Collim. m_{H} with #tau mass constraint;Yield");
 
-        map<string,TH1F*> hists = get_hists("h_collim_new", chan[c], false);
+        vector<TH1F*> hists = get_hists("h_collim_new", chan[c], false);
 
-        TH1F* this_hist = 0;
-        int ndrawn = 0;
-        for ( map<string,TH1F*>::iterator it = hists.begin(); it != hists.end(); ++it ) {
-            if ( contains( it->first, "lfv" ) ) continue; // save lfv for later
-            this_hist = it->second;
+        for ( unsigned i = 0; i < hists.size(); i++ ) {
+            hists.at(i) -> SetLineColor(i+1);
+            hists.at(i) -> SetFillColor(i+1);
 
-            this_hist -> SetLineColor(ndrawn+2);
-            this_hist -> SetFillColor(ndrawn+2);
+            if (i == 0) continue; // save lfv hist for last
 
-            stack.Add( this_hist );
-            leg.AddEntry( this_hist, (it->first).data(), "f" );
+            string nname;
+            if (i == 1) nname = "htt";
+            else nname = bkg_groups[i-2];
 
-            ndrawn++;
+            stack.Add( hists.at(i) );
+            leg.AddEntry( hists.at(i), nname.data(), "f" );
         }
 
-        hists["lfv"] -> SetLineColor(1);
-        hists["lfv"] -> SetFillColor(1);
-
-        stack.Add( hists["lfv"] );
-        leg.AddEntry( hists["lfv"], "htm", "f" );
+        stack.Add( hists.at(0) );
+        leg.AddEntry( hists.at(0), "lfv", "f" );
 
         canv.cd();
         stack.Draw("h");
+        stack.GetXaxis() -> SetRangeUser(100.,150.);
         leg.Draw();
         canv.Print( ("pix_sig/" + chan[c] + ".png").data() );
     }
 }
 
-void _draw(map<string,TH1F*> hists, string out_name, bool logy) {
+void _draw(vector<TH1F*> hists, string out_name, bool logy) {
     TCanvas canv;
     TLegend leg(0.75, 0.8, 0.95, 0.95);
 
-    int ndrawn = 0;
-    for (map<string,TH1F*>::iterator it = hists.begin(); it != hists.end(); ++it) {
-        TH1F* this_hist = it->second;
+    for (unsigned i = 0; i < hists.size(); i++) {
+        hists.at(i) -> SetLineColor(i+1);
+        hists.at(i) -> SetMarkerColor(i+1);
+        hists.at(i) -> SetMarkerStyle(20);
 
-        if (contains(it->first, "lfv")) {
-            this_hist -> SetLineColor(1);
-            this_hist -> SetMarkerColor(1);
-        } else {
-            this_hist -> SetLineColor(ndrawn + 2);
-            this_hist -> SetMarkerColor(ndrawn + 2);
+        // if we want to plot on a logarithmic scale, the x axis should start at a positive number!
+        if (logy) // && hists.at(i) -> GetMinimum() < 1.)
+            hists.at(i) -> SetMinimum(1.);
 
-            if ( this_hist->GetMaximum() > hists["lfv"]->GetMaximum() )
-                hists["lfv"] -> SetMaximum( this_hist->GetMaximum() * 1.1 );
-        }
-        
-        this_hist -> SetMarkerStyle(20);
+        // make sure no one goes off the page
+        if (i > 0 && hists.at(i)->GetMaximum() > hists.at(0)->GetMaximum())
+            hists.at(0) -> SetMaximum( hists.at(i) -> GetMaximum() * 1.1 );
 
-        if (logy && this_hist->GetMinimum() < 1) this_hist->SetMinimum(1.);
+        string nname;
+        if (i==0)
+            nname = "lfv";
+        else if (i==1) 
+            nname = "htt";
+        else 
+            nname = bkg_groups[i-2];
 
-        canv.cd();
-        if (ndrawn == 0) this_hist->Draw("h");
-        else this_hist->Draw("hsame");
-
-        leg.AddEntry(this_hist, (it->first).data(), "pl");
-
-        ndrawn++;
+        leg.AddEntry( hists.at(i), nname.data(), "l" );
     }
+
+    canv.cd();
+    hists.at(0) -> Draw("h");
+    for (unsigned i = 1; i < hists.size(); i++)
+        hists.at(i) -> Draw("hsame");
 
     if (logy) canv.SetLogy();
 
@@ -223,19 +216,16 @@ void draw_cuts() {
         for (int h = 0; h < n_cuthists; h++) {
             bool is_yield_hist = contains(cut_hists[h], "yield");
 
-            map<string,TH1F*> hists = get_hists( cut_hists[h], chan[c], false );
+            vector<TH1F*> hists = get_hists( cut_hists[h], chan[c], false );
 
-            for (map<string,TH1F*>::iterator it = hists.begin(); it != hists.end(); ++it) {
-                TH1F* this_hist = it->second;
-
+            for (unsigned i = 0; i < hists.size(); i++) {
                 if (!is_yield_hist) {
-                    this_hist -> SetMinimum(0.);
-                } else {
-                    this_hist -> SetMinimum(1.); // for ploting on a log scale
+                    hists.at(i) -> Scale( 1./ (hists.at(i) -> GetBinContent(1)) );
+                    hists.at(i) -> SetMinimum(0.);
                 }
-                
+
                 for (int k = 0; k < n_cuts; k++)
-                    this_hist -> GetXaxis() -> SetBinLabel(k+1, cut_names().at(k).data());
+                    hists.at(i) -> GetXaxis() -> SetBinLabel(k+1, cut_names().at(k).data());
 
             }
 
@@ -247,16 +237,18 @@ void draw_cuts() {
 void draw_kinem() {
     for (int c = 0; c < n_chan; c++) {
         for (int h = 0; h < n_kinemhists; h++) {
-            map<string,TH1F*> hists = get_hists( kinem_hists[h], chan[c], true );
+            vector<TH1F*> hists = get_hists( kinem_hists[h], chan[c], true );
 
-            for (map<string,TH1F*>::iterator it = hists.begin(); it != hists.end(); ++it) {
-                TH1F* this_hist = it->second;
+            vector<TH1F*> hists_good_statistics;
 
-                float hint = this_hist -> Integral();
-                if (hint > 0) this_hist -> Scale(1./hint);
+            for (unsigned i = 0; i < hists.size(); i++) {
+                float hint = hists.at(i) -> Integral();
+                if (hint > 0) hists.at(i) -> Scale(1./hint);
+
+                if ( hists.at(i) -> GetEntries() > 500 ) hists_good_statistics.push_back(hists.at(i));
             }
 
-            _draw(hists, ("pix_kinem/" + chan[c] + "_" + kinem_hists[h] + ".png"), false);
+            _draw(hists_good_statistics, ("pix_kinem/" + chan[c] + "_" + kinem_hists[h] + ".png"), false);
         }
     }
 }
@@ -268,7 +260,7 @@ void load_files() {
     dp = opendir("hists");
     if (dp) {
         while ( (dirp = readdir(dp)) ) {
-            if ( !contains(dirp->d_name, ".root") ) continue;
+            if ( contains(dirp->d_name, "hte") || !contains(dirp->d_name, ".root") ) continue;
 
             files.push_back( new TFile( (string("hists/") + dirp->d_name).data() ) );
         }
