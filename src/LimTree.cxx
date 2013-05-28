@@ -64,34 +64,36 @@ long LimTree::load_next() {
 }
 
 /*
- * 1)  isolated lepton
- * 2)  hadronic tau
- * 3)  charge correlated
- * 4)  tau pt
- * 5)  lepton eta
- * 6)  tau eta
- * -------------------LFV CUTS
- * 7)  lep pt
- * 8)  delta phi (MET, tau)
- * 9)  delta R   (MET, tau)
- * 10) vis mH
+ * 1) tau tag
+ * 2) dilepton veto
+ * 3) charge correlation
+ * 4) isolated lepton
+ * 5) hadronic tau
+ * 6) tau pt
+ * 7) lep eta
+ * 8) tau eta
+ * --------------------LFV
+ * 9) lep pt
+ * 10) dphi(met,tau)
+ * 11) dr(met,tau)
  */
 void LimTree::do_cuts() {
     cuts = vector<bool>();
 
+    cuts.push_back( is_tau );
+    cuts.push_back( is_dilepVeto );
+    cuts.push_back( is_chargeCorrelated );
     cuts.push_back( is_isoLep );
     cuts.push_back( is_tauHad );
-    cuts.push_back( is_chargeCorrelated );
     cuts.push_back( (tauPt > 20) );
     cuts.push_back( (lepEta < 2.1) );
     cuts.push_back( (tauEta < 2.3) );
     cuts.push_back( (lepPt > 50) );
     cuts.push_back( (pTau.DeltaPhi(pMet) < M_PI/2) );
     cuts.push_back( (pTau.DeltaR(pMet) < 2.5) );
-    cuts.push_back( (vis_mH() > 90) );
 }
 
-const int LimTree::ncuts = 10;
+const int LimTree::ncuts = 11;
 
 int LimTree::cutflow() {
     unsigned nfail = cuts.size();

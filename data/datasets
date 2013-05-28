@@ -1,15 +1,14 @@
-# name dsid yield_factors [units: picobarns!!] nevents
-# bkg samples in /phys/groups/tev/scratch3/users/dataset/lhCNv01-04/
-# lfv samples in /phys/groups/tev/scratch3/users/wjohnson/datasets/
+# name dsid xsec[pb] kfactor FE nevents
+# data files in /phys/groups/tev/scratch3/users/dataset/lhCNv01-04/
 
-htm_gg 169670                               0.061488      1.0    0.456192        200000.
-hte_gg 169671                               0.061488      1.0    0.456192        200000.
-htm_vbf 169672                              0.0491085     1.0    0.456192        200000.
-hte_vbf 169673                              0.0491085     1.0    0.456192        200000.
-htm_wh 169674                               0.00219429    1.0    0.456192        50000.
-hte_wh 169675                               0.00219429    1.0    0.456192        50000.
-htm_zh 169676                               0.00124205    1.0    0.456192        50000.
-hte_zh 169677                               0.00124205    1.0    0.456192        50000.
+htm_gg 169670                               0.061488      1.0    0.456192       200000.
+hte_gg 169671                               0.061488      1.0    0.456192       200000.
+htm_vbf 169672                              0.0491085     1.0    0.456192       200000.
+hte_vbf 169673                              0.0491085     1.0    0.456192       200000.
+htm_wh 169674                               0.00219429    1.0    0.456192       50000.
+hte_wh 169675                               0.00219429    1.0    0.456192       50000.
+htm_zh 169676                               0.00124205    1.0    0.456192       50000.
+hte_zh 169677                               0.00124205    1.0    0.456192       50000.
 
 htt_gg 161566                               0.0777208     1.0    0.456192       1994795.
 htt_vbf 161606                              0.0620731     1.0    0.456192       1999895.

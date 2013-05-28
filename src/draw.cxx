@@ -64,17 +64,17 @@ const int n_cuts = LimTree::ncuts + 1;
 vector<string> cut_names() {
     vector<string> cn;
     cn.push_back("all");
+    cn.push_back("tau tag");
+    cn.push_back("dilepton veto");
+    cn.push_back("opp ch");
     cn.push_back("iso lep");
     cn.push_back("#tau_{had}");
-    cn.push_back("opp ch");
     cn.push_back("tau p_{T}");
     cn.push_back("lep #eta");
     cn.push_back("tau #eta");
     cn.push_back("lep pt");
     cn.push_back("#Delta#phi(MET,#tau)");
-//  cn.push_back(  "colMassOld");
     cn.push_back("#Delta R(MET,#tau)");
-    cn.push_back("vis M_{H}");
     return cn;
 }
 

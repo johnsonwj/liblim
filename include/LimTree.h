@@ -100,6 +100,7 @@ class LimTree {
         TBranch* b_evt_number;
 
         int vertices;
+        bool is_tau;
         bool is_tauHad;
         bool is_mutau;
         bool is_eltau;
@@ -121,6 +122,7 @@ class LimTree {
         bool jets_centrality;
         
         TBranch* b_vertices;
+        TBranch* is_tau;
         TBranch* b_is_tauHad;
         TBranch* b_is_mutau;
         TBranch* b_is_eltau;
@@ -190,6 +192,7 @@ LimTree::LimTree(TChain* chain, float y, float s) {
     evt_number = 0;
 
     vertices = 0;
+    is_tau = 0;
     is_tauHad = 0;
     is_mutau = 0;
     is_eltau = 0;
@@ -239,6 +242,7 @@ LimTree::LimTree(TChain* chain, float y, float s) {
     tree -> SetBranchAddress("evtsel_is_oppositeSign", &is_chargeCorrelated, &b_is_chargeCorrelated);
     tree -> SetBranchAddress("evtsel_is_isoLep", &is_isoLep, &b_is_isoLep);
     tree -> SetBranchAddress("evtsel_is_dilepVeto", &dilepton_veto, &b_dilepton_veto);
+    tree -> SetBranchAddress("evtsel_is_tau", &is_tau, &b_is_tau);
     tree -> SetBranchAddress("evtsel_tau_is_had", &is_tauHad, &b_is_tauHad);
     tree -> SetBranchAddress("evtsel_vertices", &vertices, &b_vertices);
     tree -> SetBranchAddress("evtsel_jets_num", &jets_n, &b_jets_n);
