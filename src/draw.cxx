@@ -70,7 +70,7 @@ vector<string> cut_names() {
     cn.push_back("iso lep");
     cn.push_back("#tau_{had}");
     cn.push_back("tau p_{T}");
-    cn.push_back("lep #eta");
+    //cn.push_back("lep #eta");
     cn.push_back("tau #eta");
     cn.push_back("lep pt");
     cn.push_back("#Delta#phi(MET,#tau)");
@@ -140,7 +140,7 @@ vector<TH1F*> get_hists(string hist_name, string p_chan, bool cut_tolerance_nonz
 
 void draw_sig() {
     for (int c = 0; c < n_chan; c++) {
-        TLegend leg(0.75, 0.8, 0.95, 0.95);
+        TLegend leg(0.1, 0.7, 0.3, 0.9);
         TCanvas canv;
         
         THStack stack("sigstack", ";Collim. m_{H} with #tau mass constraint;Yield");
@@ -166,7 +166,7 @@ void draw_sig() {
 
         canv.cd();
         stack.Draw("h");
-        stack.GetXaxis() -> SetRangeUser(100.,150.);
+        //stack.GetXaxis() -> SetRangeUser(100.,150.);
         leg.Draw();
         canv.Print( ("pix_sig/" + chan[c] + ".png").data() );
     }

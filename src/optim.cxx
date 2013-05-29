@@ -23,6 +23,10 @@
 
 #include <TH1F.h>
 
+#include "DatasetIter.h"
+#include "LimTree.h"
+#include "common.h"
+
 using namespace std;
 
 /*
@@ -48,33 +52,36 @@ using namespace std;
 map< string, pair< vector<TH1F*>, vector<TH1F*> > > sig_hists;
 map< string, pair< vector<TH1F*>, vector<TH1F*> > > bkg_hists;
 
-const map< string, pair<float,float> > vec_edges;
+map< string, pair<float,float> > vec_edges;
 
 // the above maps are initialized in init() below.
 
-const int n_cuts = 5;
+const int n_cuts = 8;
 const string cut_names[n_cuts] = {
     "lep_pt",
     "dr_met_tau",
     "dphi_met_tau",
     "met",
-    "h_vismass"
+    "h_vismass",
+    "tau_pt",
+    "tau_eta",
+    "lep_eta"
 };
 
-// and of course since we're doing a whole bunch of computing, we should save the histograms.
-TFile* fout = 0;
-
 // initialize maps and such, because I can't use c++11
-void init() {
+TFile* init() {
     vec_edges["lep_pt"]        = make_pair( 0., 100. );
+    vec_edges["tau_pt"]        = make_pair( 0., 100. );
     vec_edges["dr_met_tau"]    = make_pair( 0., 5.   );
     vec_edges["dphi_met_tau"]  = make_pair( 0., 3.2  );
     vec_edges["met"]           = make_pair( 0., 100. );
     vec_edges["h_vismass"]     = make_pair( 0., 150. );
+    vec_edges["lep_eta"]       = make_pair( 0., 4.  );
+    vec_edges["tau_eta"]       = make_pair( 0., 4.  );
 
     // okay now initializing the hist maps will be complicated. First we'll open a file to throw the
     // histograms into:
-    fout = new TFile("hists.root", "recreate");
+    TFile* fout = new TFile("hists/optim.root", "recreate");
     
     //iterate over each cut name:
     for (int i = 0; i < n_cuts; i++) {
@@ -101,11 +108,13 @@ void init() {
         }
 
         // now make a pair and send it to the map
-        sig_hists[ cut_names[j] ] = make_pair( sig_vfirst, sig_vsecond );
-        bkg_hists[ cut_names[j] ] = make_pair( bkg_vfirst, bkg_vsecond );
+        sig_hists[ cut_names[i] ] = make_pair( sig_vfirst, sig_vsecond );
+        bkg_hists[ cut_names[i] ] = make_pair( bkg_vfirst, bkg_vsecond );
     }
 
     gDirectory -> cd();
+
+    return fout;
 }
 
 /*
@@ -117,8 +126,8 @@ void init() {
  */
 int get_bin_number(string cut_name, float val) {
     pair<float,float> edges = vec_edges[cut_name];
-    bin_width = (edges->second - edges->first)/100.;
-    int bn = floor( (val - edges->first)/bin_width );
+    float bin_width = (edges.second - edges.first)/100.;
+    int bn = floor( (val - edges.first)/bin_width );
     return bn;
 }
 
@@ -126,43 +135,57 @@ void fill(string cut_name, bool is_sig, float cut_var, float sig_var, float weig
     pair< vector<TH1F*>, vector<TH1F*> > hv;
 
     if (is_sig) hv = sig_hists[cut_name];
-    else hv = sig_hists[cut_name];
+    else hv = bkg_hists[cut_name];
 
     int bn = get_bin_number( cut_name, cut_var );
 
     for (int i = 0; i < 100; i++) {
         if (i < bn)
-            (hv->first).at(i) -> Fill(sig_var, weight);
+            (hv.first).at(i) -> Fill(sig_var, weight);
         else if (i > bn)
-            (hv->second).at(i) -> Fill(sig_var, weight);
+            (hv.second).at(i) -> Fill(sig_var, weight);
     }
 }
 
 int main() {
-    init();
+    TFile* fout = init();
 
     DatasetIter di;
     LimTree* lt;
 
     // loop over all datasets
     while ( (lt = di.next()) ) {
+        string ds_name = di.get_dataset_name();
+
+        // only do htm for now
+        if ( contains(ds_name, "hte") ) {
+            delete lt;
+            cout << "   ... skipping ..." << endl;
+            continue;
+        }
+
         // loop over events in each dataset
-        while ( lt -> load_next() >= 0 ) {
+        long events_read = 0;
+        while ( (events_read = lt -> load_next() + 1) ) {
+            if (events_read % 5000 == 0) cout << "  " << events_read << " events read" << endl;
+
             // first make sure that the first few tags were done (tauhad, isolated lep, ...)
             // these are the first five cuts in LimTree
             for (int i = 0; i < 5; i++)
                 if ( !(lt->cuts).at(i) ) continue;
 
-            string ds_name = di.get_dataset_name();
+            bool sig = contains(ds_name, "htm");
+            float sval = lt->collim_mH_new();
+            float weight = (lt->weight)*(lt->get_hist_scale());
 
-            // only do htm for now
-            if ( contains(ds_name, "hte") ) continue;
-
-            fill( "lep_pt",        contains(ds_name, "htm"),  lt->pLep.pT(),                lt->collim_mH_new(), lt->get_hist_scale() );
-            fill( "dr_met_tau",    contains(ds_name, "htm"),  lt->pTau.DeltaR(lt->pMet),    lt->collim_mH_new(), lt->get_hist_scale() );
-            fill( "dphi_met_tau",  contains(ds_name, "htm"),  lt->pTau.DeltaPhi(lt->pMet),  lt->collim_mH_new(), lt->get_hist_scale() );
-            fill( "met",           contains(ds_name, "htm"),  lt->pMet.pT(),                lt->collim_mH_new(), lt->get_hist_scale() );
-            fill( "h_vismass",     contains(ds_name, "htm"),  lt->vis_mH(),                 lt->collim_mH_new(), lt->get_hist_scale() );
+            fill( "lep_pt",        sig,  lt->pLep.Pt(),                sval, weight );
+            fill( "tau_pt",        sig,  lt->pTau.Pt(),                sval, weight );
+            fill( "dr_met_tau",    sig,  lt->pTau.DeltaR(lt->pMet),    sval, weight );
+            fill( "dphi_met_tau",  sig,  lt->pTau.DeltaPhi(lt->pMet),  sval, weight );
+            fill( "met",           sig,  lt->pMet.Pt(),                sval, weight );
+            fill( "h_vismass",     sig,  lt->vis_mH(),                 sval, weight );
+            fill( "lep_eta",       sig,  fabs(lt->pLep.Eta()),         sval, weight );
+            fill( "tau_eta",       sig,  fabs(lt->pTau.Eta()),         sval, weight );
         }
 
         delete lt;

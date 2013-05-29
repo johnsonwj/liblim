@@ -3,6 +3,6 @@ hists/*
 .nfs*
 dohists
 draw
-optimize
+optim
 yields
 *.o

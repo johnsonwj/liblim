@@ -122,7 +122,7 @@ class LimTree {
         bool jets_centrality;
         
         TBranch* b_vertices;
-        TBranch* is_tau;
+        TBranch* b_is_tau;
         TBranch* b_is_tauHad;
         TBranch* b_is_mutau;
         TBranch* b_is_eltau;

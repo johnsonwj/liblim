@@ -81,19 +81,19 @@ void LimTree::do_cuts() {
     cuts = vector<bool>();
 
     cuts.push_back( is_tau );
-    cuts.push_back( is_dilepVeto );
+    cuts.push_back( dilepton_veto );
     cuts.push_back( is_chargeCorrelated );
     cuts.push_back( is_isoLep );
     cuts.push_back( is_tauHad );
-    cuts.push_back( (tauPt > 20) );
-    cuts.push_back( (lepEta < 2.1) );
-    cuts.push_back( (tauEta < 2.3) );
-    cuts.push_back( (lepPt > 50) );
-    cuts.push_back( (pTau.DeltaPhi(pMet) < M_PI/2) );
-    cuts.push_back( (pTau.DeltaR(pMet) < 2.5) );
+    cuts.push_back( (tauPt > 49) );
+    //cuts.push_back( (lepEta < 2.1) );
+    cuts.push_back( (tauEta < 2.48) );
+    cuts.push_back( (lepPt > 54) );
+    cuts.push_back( (pTau.DeltaPhi(pMet) < 1.66) );
+    cuts.push_back( (pTau.DeltaR(pMet) < 1.80) );
 }
 
-const int LimTree::ncuts = 11;
+const int LimTree::ncuts = 10;
 
 int LimTree::cutflow() {
     unsigned nfail = cuts.size();
