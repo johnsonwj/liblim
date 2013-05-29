@@ -5,7 +5,7 @@ VPATH = ../include
 objc = $(rootc) -c $< -o $@
 
 objs = AtlasStyle.o DatasetIter.o LimTree.o common.o
-execs = $(addprefix ../, dohists draw yields)
+execs = $(addprefix ../, dohists draw yields optim)
 
 all: $(execs)
 
