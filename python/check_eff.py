@@ -3,41 +3,46 @@
 from os import listdir as ls
 from ROOT import *
 
-data_line = '{0:<18}{1:<12d}{2:<12d}{3:<12.2%}{4:<12d}{5:<12.2%}\n'
+data_line = '{0:<18}{1:<12.2e}{2:<12.2e}{3:<12.2%}{4:<12.2e}{5:<12.2%}\n'
 data_line_head = '# {0:<16}{1:<12}{2:<12}{3:<12}{4:<12}{5:<12}\n'.format(
-    'Dataset name', 'Total', 'CT0 Passed', 'CT0 Eff', 'CT4 Passed', 'CT4 Eff')
+    'Dataset name', 'Total', 'CT0 Passed', 'CT0 Eff', 'CT5 Passed', 'CT5 Eff')
 
-files = [ 'gg_htm', 'vbf_htm', 'wh_htm', 'zh_htm',
-          'gg_htt', 'vbf_htt', 'wh_htt', 'zh_htt',
-          'diboson', 'top+lep', 'w+jets', 'z+jets' ]
+chan = ['gg','vbf','wh','zh']
+
+groups = [ 'htm_' + x for x in chan ] + [ 'htt_' + x for x in chan ] + ['z+jets', 'w+jets', 'top+lep', 'diboson']
+
+totals = dict()
+ct0_pass = dict()
+ct5_pass = dict()
 
 with open('data/eff','w') as data_out:
-  data_out.write(data_line_head)
+    data_out.write(data_line_head)
 
-  for fn in files:
-    tf_ct0 = TFile('hists/' + fn + '_CT0.root')
-    tf_ct4 = TFile('hists/' + fn + '_CT4.root')
+    for fn in ls('hists'):
+        if 'optim' in fn:
+            continue
 
-    cfhist0 = tf_ct0.Get("cutflow")
-    cfhist4 = tf_ct4.Get("cutflow")
+        words = fn.split('_')
+        if words[0] in chan:
+            group = '_'.join(words[:2])
+        else:
+            group = words[0]
 
-    begin0 = cfhist0.GetBinContent(1)
-    begin4 = cfhist4.GetBinContent(1)
+        tf = TFile('hists/'+fn)
+        cfh = tf.Get('cutflow_full')
 
-    end0 = cfhist0.GetBinContent( cfhist0.GetNbinsX() )
-    end4 = cfhist4.GetBinContent( cfhist4.GetNbinsX() - 5 )
+        t = cfh.GetBinContent(1)
+        c0p = cfh.GetBinContent( cfh.GetNbinsX() )
+        c5p = cfh.GetBinContent( cfh.GetNbinsX() - 5 )
 
-    if begin0 > 0:
-        eff0 = float(end0)/begin0
-    else:
-        eff0 = float('nan')
+        if group in totals:
+            totals[group] += t
+            ct0_pass[group] += c0p
+            ct5_pass[group] += c5p
+        else:
+            totals[group] = t
+            ct0_pass[group] = c0p
+            ct5_pass[group] = c5p
 
-    if begin4 > 0:
-        eff4 = float(end4)/begin4
-    else:
-        eff4 = float('nan')
-
-    data_out.write( data_line.format(fn,int(begin0),int(end0),eff0,int(end4),eff4) )
-
-    #except:
-    #  print 'oops',rootfn
+    for k in totals:
+        data_out.write( data_line.format(k, totals[k], ct0_pass[k], ct0_pass[k]/totals[k], ct5_pass[k], ct5_pass[k]/totals[k]) )
