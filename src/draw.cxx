@@ -55,9 +55,7 @@ const string kinem_hists[n_kinemhists] = {
 const int n_cuthists = 2;
 const string cut_hists[n_cuthists] = {
     "cutflow_full",
-//    "cutflow_sig_region",
     "yield_full",
-//    "yield_sig_region"
 };
 
 const int n_cuts = LimTree::ncuts + 1;
@@ -70,8 +68,6 @@ vector<string> cut_names() {
     cn.push_back("iso lep");
     cn.push_back("#tau_{had}");
     cn.push_back("tau p_{T}");
-    //cn.push_back("lep #eta");
-    cn.push_back("tau #eta");
     cn.push_back("lep pt");
     cn.push_back("#Delta#phi(MET,#tau)");
     cn.push_back("#Delta R(MET,#tau)");
@@ -140,7 +136,7 @@ vector<TH1F*> get_hists(string hist_name, string p_chan, bool cut_tolerance_nonz
 
 void draw_sig() {
     for (int c = 0; c < n_chan; c++) {
-        TLegend leg(0.1, 0.7, 0.3, 0.9);
+        TLegend leg(0.2, 0.7, 0.4, 0.9);
         TCanvas canv;
         
         THStack stack("sigstack", ";Collim. m_{H} with #tau mass constraint;Yield");
@@ -164,9 +160,7 @@ void draw_sig() {
         stack.Add( hists.at(0) );
         leg.AddEntry( hists.at(0), "lfv", "f" );
 
-        canv.cd();
         stack.Draw("h");
-        //stack.GetXaxis() -> SetRangeUser(100.,150.);
         leg.Draw();
         canv.Print( ("pix_sig/" + chan[c] + ".png").data() );
     }

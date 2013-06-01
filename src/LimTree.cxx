@@ -86,14 +86,12 @@ void LimTree::do_cuts() {
     cuts.push_back( is_isoLep );
     cuts.push_back( is_tauHad );
     cuts.push_back( (tauPt > 49) );
-    //cuts.push_back( (lepEta < 2.1) );
-    cuts.push_back( (tauEta < 2.48) );
     cuts.push_back( (lepPt > 54) );
     cuts.push_back( (pTau.DeltaPhi(pMet) < 1.66) );
     cuts.push_back( (pTau.DeltaR(pMet) < 1.80) );
 }
 
-const int LimTree::ncuts = 10;
+const int LimTree::ncuts = 9;
 
 int LimTree::cutflow() {
     unsigned nfail = cuts.size();

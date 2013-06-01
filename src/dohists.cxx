@@ -41,27 +41,21 @@ TFile* book_hists(string fname_base) {
     TFile* fout = new TFile(fname.data(), "recreate");
 
     hists["h_vismass"] 
-        = new TH1F("h_vismass",";Higgs Visible Mass (GeV);Counts", 75, 0, 150);
+        = new TH1F("h_vismass",";Higgs Visible Mass (GeV);Counts", 20, 0, 300);
 
     hists["h_collim_old"] 
-        = new TH1F("h_collim_old",";Higgs Collinear Mass (old method) (GeV);Counts", 75, 0, 150);
+        = new TH1F("h_collim_old",";Higgs Collinear Mass (old method) (GeV);Counts", 24, 0, 360);
 
     hists["h_collim_new"] 
-        = new TH1F("h_collim_new",";Higgs Collinear Mass (new method) (GeV);Counts", 75, 0, 150);
+        = new TH1F("h_collim_new",";Higgs Collinear Mass (new method) (GeV);Counts", 24, 0, 360);
 
     int ncuts = LimTree::ncuts + 1; // +1 for including a bin for zero cuts
 
     hists["cutflow_full"] 
         = new TH1F("cutflow_full",";Cuts Passed;Counts", ncuts, 0, ncuts);
 
-//    hists["cutflow_sig_region"] 
-//        = new TH1F("cutflow_sig_region",";Cuts passed, 115 GeV < m_{H} < 135 GeV;Counts", ncuts, 0, ncuts);
-
     hists["yield_full"] 
         = new TH1F("yield_full",";Cuts Passed;Yield", ncuts, 0, ncuts);
-
-//    hists["yield_sig_region"] 
-//        = new TH1F("yield_sig_region",";Cuts Passed, 115 GeV < m_{H} < 135 GeV;Yield", ncuts, 0, ncuts);
 
     hists["h_pt"] 
         = new TH1F("h_pt",";Higgs p_{T} (GeV);Counts", 100, 0, 200);
